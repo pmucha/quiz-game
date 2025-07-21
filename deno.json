@@ -1,0 +1,33 @@
+{
+  "name": "quiz-multiplayer-game",
+  "version": "1.0.0",
+  "exports": "./main.ts",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --unstable-kv main.ts",
+    "start": "deno run --allow-net --allow-read --allow-write --allow-env --unstable-kv main.ts"
+  },
+  "imports": {
+    "@std/http": "jsr:@std/http@^1.0.0",
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@std/uuid": "jsr:@std/uuid@^1.0.0",
+    "vue": "https://unpkg.com/vue@3.4.0/dist/vue.esm-browser.js"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2022",
+      "deno.ns",
+      "deno.unstable"
+    ]
+  },
+  "deploy": {
+    "project": "6d7e510c-9c79-46b7-ae46-9bb706b6944a",
+    "exclude": [
+      "**/node_modules"
+    ],
+    "include": [],
+    "entrypoint": "main.ts"
+  }
+}

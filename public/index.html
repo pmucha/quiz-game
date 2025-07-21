@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Multiplayer</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'parchment': {
+                            50: '#fefdf8',
+                            100: '#fdf9e7',
+                            200: '#faf0c4',
+                            300: '#f5e197',
+                            400: '#edc968',
+                            500: '#e4b143',
+                            600: '#d49c35',
+                            700: '#b17f2e',
+                            800: '#8f652b',
+                            900: '#755327',
+                        },
+                        'ink': {
+                            600: '#4a5568',
+                            700: '#2d3748',
+                            800: '#1a202c',
+                        }
+                    },
+                    fontFamily: {
+                        'serif': ['Crimson Text', 'Libre Baskerville', 'serif'],
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+        
+        .book-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .book-page {
+            background: linear-gradient(135deg, #fefdf8 0%, #fdf9e7 100%);
+            position: relative;
+        }
+        
+        .book-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f5e197' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="book-page min-h-screen font-serif">
+    <div id="app">
+        <div class="container mx-auto px-4 py-8 max-w-4xl">
+            <header class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-ink-800 mb-2">📚 Quiz Multiplayer</h1>
+                <p class="text-ink-600 text-lg">Gra dla dwóch graczy</p>
+            </header>
+
+            <!-- Error Message -->
+            <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {{ error }}
+            </div>
+
+            <!-- Success Message -->
+            <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                {{ message }}
+            </div>
+
+            <!-- Menu State -->
+            <div v-if="gameState === 'menu'" class="max-w-md mx-auto">
+                <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+                    <!-- Create New Game Section -->
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">Stwórz nową grę</h2>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-ink-700 font-sans mb-2">Twoje imię:</label>
+                                <input 
+                                    v-model="playerNameCreate" 
+                                    type="text" 
+                                    class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                    placeholder="Wpisz swoje imię..."
+                                    maxlength="20"
+                                    @keyup.enter="createGame"
+                                >
+                            </div>
+                        </div>
+                        
+                        <button 
+                            @click="createGame"
+                            class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        >
+                            🎲 Stwórz nową grę
+                        </button>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative my-8">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-parchment-400"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-parchment-100 text-ink-600 font-sans">lub</span>
+                        </div>
+                    </div>
+
+                    <!-- Join Game Section -->
+                    <div>
+                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">Dołącz do gry</h2>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-ink-700 font-sans mb-2">Twoje imię:</label>
+                                <input 
+                                    v-model="playerNameJoin" 
+                                    type="text" 
+                                    class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                    placeholder="Wpisz swoje imię..."
+                                    maxlength="20"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-ink-700 font-sans mb-2">Kod gry:</label>
+                                <input 
+                                    v-model="gameCode" 
+                                    type="text" 
+                                    class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                    placeholder="Wpisz 4-cyfrowy kod..."
+                                    maxlength="4"
+                                    @keyup.enter="joinGame"
+                                >
+                            </div>
+                        </div>
+                        
+                        <button 
+                            @click="joinGame"
+                            class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        >
+                            🚪 Dołącz do gry
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waiting State -->
+            <div v-if="gameState === 'waiting'" class="text-center">
+                <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+                    <h2 class="text-2xl font-bold text-ink-800 mb-4">Oczekiwanie na drugiego gracza...</h2>
+                    <p class="text-ink-600 mb-4">Kod gry: <span class="font-bold text-2xl">{{ room?.code }}</span></p>
+                    <p class="text-ink-600">Podziel się tym kodem z drugim graczem</p>
+                    <div class="mt-6">
+                        <button @click="resetGame" class="bg-gray-500 hover:bg-gray-600 text-white font-sans font-bold py-2 px-4 rounded">
+                            Powrót do menu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playing State -->
+            <div v-if="gameState === 'playing'" class="space-y-6">
+                <!-- Game Info -->
+                <div class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-ink-800">Gra w toku</h2>
+                        <div class="text-ink-600 font-sans">
+                            Runda {{ room?.currentRound || 1 }}/{{ room?.maxRounds || 3 }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
+                            <div class="text-2xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
+                            <div class="text-sm text-ink-600">Ukończone rundy: {{ room?.roundsCompleted?.[room?.players[0]?.id] || 0 }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
+                            <div class="text-2xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
+                            <div class="text-sm text-ink-600">Ukończone rundy: {{ room?.roundsCompleted?.[room?.players[1]?.id] || 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question Form (when it's player's turn to ask) -->
+                <div v-if="canAskQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+                    <h3 class="text-xl font-bold text-ink-800 mb-4">Twoja kolej - zadaj pytanie!</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-ink-700 font-sans mb-2">Treść pytania:</label>
+                            <textarea 
+                                v-model="questionForm.text"
+                                class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                rows="3"
+                                placeholder="Wpisz swoje pytanie..."
+                            ></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-ink-700 font-sans mb-2">Odpowiedzi:</label>
+                            <div class="space-y-2">
+                                <div v-for="(answer, index) in questionForm.answers" :key="index" class="flex items-center space-x-2">
+                                    <input 
+                                        type="radio" 
+                                        :name="'correct-answer'" 
+                                        :value="index" 
+                                        v-model="questionForm.correctAnswer"
+                                        class="text-parchment-500"
+                                    >
+                                    <input 
+                                        v-model="questionForm.answers[index]"
+                                        type="text" 
+                                        class="flex-1 p-2 border border-parchment-400 rounded bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                        :placeholder="'Odpowiedź ' + (index + 1)"
+                                    >
+                                </div>
+                            </div>
+                            <p class="text-sm text-ink-600 mt-2">Zaznacz poprawną odpowiedź</p>
+                        </div>
+                        
+                        <button 
+                            @click="submitQuestion"
+                            class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        >
+                            Zadaj pytanie
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Answer Form (when it's player's turn to answer) -->
+                <div v-if="canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+                    <h3 class="text-xl font-bold text-ink-800 mb-4">{{ otherPlayer?.name }} pyta:</h3>
+                    
+                    <div class="bg-parchment-50 p-4 rounded-lg mb-4">
+                        <p class="text-ink-800 text-lg">{{ room?.currentQuestion?.text }}</p>
+                    </div>
+                    
+                    <div class="space-y-2 mb-4">
+                        <div v-for="(answer, index) in room?.currentQuestion?.answers" :key="index">
+                            <label class="flex items-center space-x-3 p-3 border border-parchment-300 rounded-lg hover:bg-parchment-50 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    :value="index" 
+                                    v-model="selectedAnswer"
+                                    class="text-parchment-500"
+                                >
+                                <span class="text-ink-800">{{ answer }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        @click="submitAnswer"
+                        class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        :disabled="selectedAnswer === -1"
+                    >
+                        Odpowiedz
+                    </button>
+                </div>
+
+                <!-- Waiting for other player -->
+                <div v-if="!canAskQuestion && !canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 text-center">
+                    <h3 class="text-xl font-bold text-ink-800 mb-2">Oczekiwanie...</h3>
+                    <p class="text-ink-600">{{ otherPlayer?.name }} przygotowuje pytanie</p>
+                </div>
+            </div>
+
+            <!-- Finished State -->
+            <div v-if="gameState === 'finished'" class="text-center">
+                <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+                    <h2 class="text-3xl font-bold text-ink-800 mb-4">🎉 Gra zakończona!</h2>
+                    <p class="text-xl text-ink-600 mb-6">
+                        Zwycięzca: <span class="font-bold">{{ room?.winner ? room.players.find(p => p.id === room.winner)?.name : 'Remis' }}</span>
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="text-center">
+                            <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
+                            <div class="text-3xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
+                            <div class="text-3xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
+                        </div>
+                    </div>
+                    
+                    <button @click="resetGameAfterFinish" class="bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        Nowa gra
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+        createApp({
+            setup() {
+                const gameState = ref('menu');
+                const playerNameCreate = ref('');
+                const playerNameJoin = ref('');
+                const currentPlayerName = ref('');
+                const gameCode = ref('');
+                const room = ref(null);
+                const currentPlayer = ref(null);
+                const socket = ref(null);
+                const message = ref('');
+                const error = ref('');
+                const connectionState = ref('disconnected');
+
+                const questionForm = ref({
+                    text: '',
+                    answers: ['', '', '', '', ''],
+                    correctAnswer: 0
+                });
+                
+                const selectedAnswer = ref(-1);
+
+                const isMyTurn = computed(() => {
+                    return room.value && currentPlayer.value && 
+                           room.value.currentPlayerTurn === currentPlayer.value.id;
+                });
+
+                const otherPlayer = computed(() => {
+                    if (!room.value || !currentPlayer.value) return null;
+                    return room.value.players.find(p => p.id !== currentPlayer.value.id);
+                });
+
+                const isConnected = computed(() => {
+                    return connectionState.value === 'connected';
+                });
+
+                const isReconnecting = computed(() => {
+                    return connectionState.value === 'reconnecting';
+                });
+
+                const canAskQuestion = computed(() => {
+                    return isMyTurn.value && !room.value?.currentQuestion;
+                });
+
+                const canAnswerQuestion = computed(() => {
+                    return !isMyTurn.value && room.value?.currentQuestion;
+                });
+
+                // Game state persistence
+                function saveGameState() {
+                    if (room.value && currentPlayer.value) {
+                        const state = {
+                            room: room.value,
+                            currentPlayer: currentPlayer.value,
+                            currentPlayerName: currentPlayerName.value,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem('quizGameState', JSON.stringify(state));
+                    }
+                }
+
+                function clearGameState() {
+                    localStorage.removeItem('quizGameState');
+                }
+
+                function loadGameState() {
+                    const saved = localStorage.getItem('quizGameState');
+                    if (saved) {
+                        try {
+                            const state = JSON.parse(saved);
+                            // Check if state is not too old (24 hours)
+                            if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) {
+                                return state;
+                            } else {
+                                clearGameState();
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse saved game state:', e);
+                            clearGameState();
+                        }
+                    }
+                    return null;
+                }
+
+                function connectWebSocket() {
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}`;
+
+                    socket.value = new WebSocket(wsUrl);
+
+                    socket.value.onopen = () => {
+                        console.log('Connected to server');
+                        connectionState.value = 'connected';
+                        error.value = '';
+
+                        // Check if we need to rejoin a game
+                        const savedState = loadGameState();
+                        if (savedState && savedState.room && savedState.currentPlayer) {
+                            console.log('Attempting to rejoin game:', savedState.room.code, 'with ID:', savedState.room.id);
+                            socket.value.send(JSON.stringify({
+                                type: 'rejoin',
+                                data: {
+                                    roomId: savedState.room.id,  // Use actual room ID, not code
+                                    playerId: savedState.currentPlayer.id,
+                                    playerName: savedState.currentPlayer.name
+                                }
+                            }));
+                        }
+                    };
+
+                    socket.value.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        handleServerMessage(data);
+                    };
+
+                    socket.value.onclose = () => {
+                        console.log('Disconnected from server');
+                        // Only show disconnection error if we're not intentionally resetting
+                        if (gameState.value !== 'menu') {
+                            connectionState.value = 'disconnected';
+                            error.value = 'Połączenie z serwerem zostało przerwane';
+                        }
+                    };
+
+                    socket.value.onerror = (err) => {
+                        console.error('WebSocket error:', err);
+                        // Only show connection error if we're not intentionally resetting
+                        if (gameState.value !== 'menu') {
+                            connectionState.value = 'disconnected';
+                            error.value = 'Błąd połączenia z serwerem';
+                        }
+                    };
+                }
+
+                function handleServerMessage(data) {
+                    console.log('Received message:', data.type, data);
+
+                    // Save game state on any game update
+                    if (data.type === 'gameUpdate' || data.type === 'playerDisconnected' || data.type === 'rejoinSuccess') {
+                        saveGameState();
+                    }
+
+                    switch (data.type) {
+                        case 'gameUpdate':
+                            console.log('Game update received:', data.data);
+                            room.value = data.data.room;
+                            message.value = data.data.message || '';
+
+                            if (room.value && currentPlayerName.value) {
+                                currentPlayer.value = room.value.players.find(p => p.name === currentPlayerName.value);
+                                console.log('Current player identified:', currentPlayer.value);
+                                console.log('Room current turn:', room.value.currentPlayerTurn);
+                                console.log('Current question:', room.value.currentQuestion);
+                                console.log('isMyTurn:', isMyTurn.value);
+                                console.log('canAskQuestion:', canAskQuestion.value);
+                                console.log('canAnswerQuestion:', canAnswerQuestion.value);
+                            }
+
+                            if (room.value) {
+                                if (room.value.gameState === 'waiting') {
+                                    gameState.value = 'waiting';
+                                } else if (room.value.gameState === 'playing') {
+                                    gameState.value = 'playing';
+                                } else if (room.value.gameState === 'finished') {
+                                    gameState.value = 'finished';
+                                    // Clear saved state when game finishes
+                                    clearGameState();
+                                    // Let players restart on demand using the button
+                                }
+                            }
+                            break;
+
+                        case 'rejoinSuccess':
+                            console.log('Rejoin successful:', data.data);
+                            room.value = data.data.room;
+                            currentPlayer.value = data.data.player;
+                            message.value = data.data.message || 'Pomyślnie przywrócono połączenie!';
+
+                            if (room.value) {
+                                if (room.value.gameState === 'waiting') {
+                                    gameState.value = 'waiting';
+                                } else if (room.value.gameState === 'playing') {
+                                    gameState.value = 'playing';
+                                } else if (room.value.gameState === 'finished') {
+                                    gameState.value = 'finished';
+                                }
+                            }
+                            break;
+
+                        case 'rejoinFailed':
+                            console.log('Rejoin failed:', data.data.message);
+                            error.value = data.data.message;
+                            clearGameState(); // Clear invalid state
+                            gameState.value = 'menu';
+                            break;
+
+                        case 'error':
+                            console.error('Server error:', data.data.message);
+                            error.value = data.data.message;
+                            break;
+
+                        case 'playerDisconnected':
+                            room.value = data.data.room;
+                            message.value = data.data.message;
+                            break;
+                    }
+                }
+
+                function createGame() {
+                    if (!playerNameCreate.value.trim()) {
+                        error.value = 'Podaj swoje imię';
+                        return;
+                    }
+                    
+                    currentPlayerName.value = playerNameCreate.value.trim();
+                    error.value = '';
+                    connectWebSocket();
+                    
+                    socket.value.onopen = () => {
+                        socket.value.send(JSON.stringify({
+                            type: 'create',
+                            data: { playerName: currentPlayerName.value }
+                        }));
+                    };
+                }
+
+                function joinGame() {
+                    if (!playerNameJoin.value.trim()) {
+                        error.value = 'Podaj swoje imię';
+                        return;
+                    }
+                    
+                    if (!gameCode.value.trim() || gameCode.value.trim().length !== 4) {
+                        error.value = 'Podaj prawidłowy 4-cyfrowy kod gry';
+                        return;
+                    }
+                    
+                    currentPlayerName.value = playerNameJoin.value.trim();
+                    error.value = '';
+                    connectWebSocket();
+                    
+                    socket.value.onopen = () => {
+                        socket.value.send(JSON.stringify({
+                            type: 'join',
+                            data: { 
+                                playerName: currentPlayerName.value,
+                                gameCode: gameCode.value.trim().toUpperCase()
+                            }
+                        }));
+                    };
+                }
+
+                function submitQuestion() {
+                    console.log('Submitting question...');
+                    console.log('Current player:', currentPlayer.value);
+                    console.log('Room current turn:', room.value?.currentPlayerTurn);
+                    console.log('isMyTurn:', isMyTurn.value);
+
+                    if (!questionForm.value.text.trim()) {
+                        error.value = 'Podaj treść pytania';
+                        return;
+                    }
+
+                    const filledAnswers = questionForm.value.answers.filter(a => a.trim());
+                    if (filledAnswers.length < 2) {
+                        error.value = 'Podaj co najmniej 2 odpowiedzi';
+                        return;
+                    }
+
+                    error.value = '';
+
+                    socket.value.send(JSON.stringify({
+                        type: 'question',
+                        data: {
+                            text: questionForm.value.text.trim(),
+                            answers: questionForm.value.answers.map(a => a.trim()).filter(a => a),
+                            correctAnswer: questionForm.value.correctAnswer
+                        }
+                    }));
+
+                    questionForm.value = {
+                        text: '',
+                        answers: ['', '', '', '', ''],
+                        correctAnswer: 0
+                    };
+                }
+
+                function submitAnswer() {
+                    if (selectedAnswer.value === -1) {
+                        error.value = 'Wybierz odpowiedź';
+                        return;
+                    }
+                    
+                    error.value = '';
+                    
+                    socket.value.send(JSON.stringify({
+                        type: 'answer',
+                        data: {
+                            questionId: room.value.currentQuestion.id,
+                            selectedAnswer: selectedAnswer.value
+                        }
+                    }));
+                    
+                    selectedAnswer.value = -1;
+                }
+
+                function resetGame() {
+                    gameState.value = 'menu';
+                    playerNameCreate.value = '';
+                    playerNameJoin.value = '';
+                    currentPlayerName.value = '';
+                    gameCode.value = '';
+                    room.value = null;
+                    currentPlayer.value = null;
+                    message.value = '';
+                    error.value = '';
+                    selectedAnswer.value = -1;
+
+                    // Clear saved game state
+                    clearGameState();
+
+                    // Don't close WebSocket connection - keep it open for new games
+                    // The connection should remain active for the same session
+                }
+
+                function resetGameAfterFinish() {
+                    // Special reset for game end - keep connection open
+                    gameState.value = 'menu';
+                    playerNameCreate.value = '';
+                    playerNameJoin.value = '';
+                    gameCode.value = '';
+                    room.value = null;
+                    currentPlayer.value = null;
+                    message.value = '';
+                    error.value = '';
+                    selectedAnswer.value = -1;
+
+                    // Clear saved game state but keep connection
+                    clearGameState();
+
+                    // Reset connection state to avoid disconnection alerts
+                    connectionState.value = 'connected';
+                }
+
+                onMounted(() => {
+                    console.log('Component mounted, checking for saved game state...');
+
+                    // Auto-connect on page load if we have saved game state
+                    const savedGameState = localStorage.getItem('quizGameState');
+                    console.log('Saved game state found:', !!savedGameState);
+
+                    if (savedGameState) {
+                        try {
+                            const state = JSON.parse(savedGameState);
+                            console.log('Parsed state:', state);
+
+                            if (state.room && state.currentPlayer) {
+                                console.log('Restoring game:', state.room.code, 'ID:', state.room.id);
+                                room.value = state.room;
+                                currentPlayer.value = state.currentPlayer;
+                                currentPlayerName.value = state.currentPlayerName;
+                                gameState.value = 'reconnecting';
+                                connectionState.value = 'connecting';
+                                error.value = 'Przywracanie połączenia...';
+
+                                // Attempt to reconnect
+                                setTimeout(() => {
+                                    console.log('Connecting WebSocket...');
+                                    connectWebSocket();
+                                }, 500);
+                            }
+                        } catch (e) {
+                            console.error('Failed to restore game state:', e);
+                            localStorage.removeItem('quizGameState');
+                        }
+                    }
+
+                    // Handle page visibility changes for mobile
+                    function handleVisibilityChange() {
+                        if (document.hidden) {
+                            console.log('Page hidden - maintaining connection');
+                        } else {
+                            console.log('Page visible - checking connection');
+                            if (socket.value && socket.value.readyState !== WebSocket.OPEN && room.value) {
+                                connectWebSocket();
+                            }
+                        }
+                    }
+
+                    function handleOnline() {
+                        console.log('Network online');
+                        if (room.value && connectionState.value !== 'connected') {
+                            connectWebSocket();
+                        }
+                    }
+
+                    function handleOffline() {
+                        console.log('Network offline');
+                        error.value = 'Brak połączenia internetowego';
+                        connectionState.value = 'disconnected';
+                    }
+
+                    document.addEventListener('visibilitychange', handleVisibilityChange);
+                    window.addEventListener('online', handleOnline);
+                    window.addEventListener('offline', handleOffline);
+
+                    // Store references for cleanup
+                    window.__quizGameHandlers = {
+                        visibility: handleVisibilityChange,
+                        online: handleOnline,
+                        offline: handleOffline
+                    };
+                });
+
+                onUnmounted(() => {
+                    // Clean up event listeners using stored references
+                    if (window.__quizGameHandlers) {
+                        document.removeEventListener('visibilitychange', window.__quizGameHandlers.visibility);
+                        window.removeEventListener('online', window.__quizGameHandlers.online);
+                        window.removeEventListener('offline', window.__quizGameHandlers.offline);
+                        delete window.__quizGameHandlers;
+                    }
+
+                    // Clean up connection
+                    if (socket.value) {
+                        socket.value.close();
+                        socket.value = null;
+                    }
+                });
+
+                return {
+                    gameState,
+                    playerNameCreate,
+                    playerNameJoin,
+                    currentPlayerName,
+                    gameCode,
+                    room,
+                    currentPlayer,
+                    message,
+                    error,
+                    questionForm,
+                    selectedAnswer,
+                    isMyTurn,
+                    otherPlayer,
+                    canAskQuestion,
+                    canAnswerQuestion,
+                    isConnected,
+                    isReconnecting,
+                    createGame,
+                    joinGame,
+                    submitQuestion,
+                    submitAnswer,
+                    resetGame
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
