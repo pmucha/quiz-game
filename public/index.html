@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Multiplayer</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-i18n@9/dist/vue-i18n.global.prod.js"></script>
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <script>
         tailwind.config = {
@@ -61,12 +62,28 @@
         }
     </style>
 </head>
+
 <body class="book-page min-h-screen font-serif">
     <div id="app">
-        <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="container mx-auto px-4 py-8 max-w-4xl" :key="currentLocale">
+            <!-- Language Selector -->
+            <div class="absolute top-4 right-4">
+                <select
+                    :value="currentLocale"
+                    @change="changeLanguage($event.target.value)"
+                    class="text-sm bg-parchment-100 border border-parchment-300 rounded px-2 py-1 text-ink-700 focus:outline-none focus:ring-1 focus:ring-parchment-500"
+                >
+                    <option value="en">🇺🇸 English</option>
+                    <option value="pl">🇵🇱 Polski</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                </select>
+            </div>
+            </div>
+
             <header class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-ink-800 mb-2">📚 Quiz Multiplayer</h1>
-                <p class="text-ink-600 text-lg">Gra dla dwóch graczy</p>
+                <p class="text-ink-600 text-lg">{{ $t('subtitle') }}</p>
             </header>
 
             <!-- Error Message -->
@@ -84,27 +101,27 @@
                 <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
                     <!-- Create New Game Section -->
                     <div class="mb-8">
-                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">Stwórz nową grę</h2>
-                        
+                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('createNewGame') }}</h2>
+
                         <div class="space-y-4 mb-6">
                             <div>
-                                <label class="block text-ink-700 font-sans mb-2">Twoje imię:</label>
-                                <input 
-                                    v-model="playerNameCreate" 
-                                    type="text" 
+                                <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
+                                <input
+                                    v-model="playerNameCreate"
+                                    type="text"
                                     class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                    placeholder="Wpisz swoje imię..."
+                                    :placeholder="$t('enterYourName')"
                                     maxlength="20"
                                     @keyup.enter="createGame"
                                 >
                             </div>
                         </div>
-                        
-                        <button 
+
+                        <button
                             @click="createGame"
                             class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                         >
-                            🎲 Stwórz nową grę
+                            🎲 {{ $t('createNewGameButton') }}
                         </button>
                     </div>
 
@@ -114,44 +131,44 @@
                             <div class="w-full border-t border-parchment-400"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-parchment-100 text-ink-600 font-sans">lub</span>
+                            <span class="px-4 bg-parchment-100 text-ink-600 font-sans">{{ $t('or') }}</span>
                         </div>
                     </div>
 
                     <!-- Join Game Section -->
                     <div>
-                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">Dołącz do gry</h2>
-                        
+                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('joinGame') }}</h2>
+
                         <div class="space-y-4 mb-6">
                             <div>
-                                <label class="block text-ink-700 font-sans mb-2">Twoje imię:</label>
-                                <input 
-                                    v-model="playerNameJoin" 
-                                    type="text" 
+                                <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
+                                <input
+                                    v-model="playerNameJoin"
+                                    type="text"
                                     class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                    placeholder="Wpisz swoje imię..."
+                                    :placeholder="$t('enterYourName')"
                                     maxlength="20"
                                 >
                             </div>
-                            
+
                             <div>
-                                <label class="block text-ink-700 font-sans mb-2">Kod gry:</label>
-                                <input 
-                                    v-model="gameCode" 
-                                    type="text" 
+                                <label class="block text-ink-700 font-sans mb-2">{{ $t('gameCode') }}:</label>
+                                <input
+                                    v-model="gameCode"
+                                    type="text"
                                     class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                    placeholder="Wpisz 4-cyfrowy kod..."
+                                    :placeholder="$t('enterGameCode')"
                                     maxlength="4"
                                     @keyup.enter="joinGame"
                                 >
                             </div>
                         </div>
-                        
-                        <button 
+
+                        <button
                             @click="joinGame"
                             class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                         >
-                            🚪 Dołącz do gry
+                            🚪 {{ $t('joinGameButton') }}
                         </button>
                     </div>
                 </div>
@@ -160,12 +177,12 @@
             <!-- Waiting State -->
             <div v-if="gameState === 'waiting'" class="text-center">
                 <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                    <h2 class="text-2xl font-bold text-ink-800 mb-4">Oczekiwanie na drugiego gracza...</h2>
-                    <p class="text-ink-600 mb-4">Kod gry: <span class="font-bold text-2xl">{{ room?.code }}</span></p>
-                    <p class="text-ink-600">Podziel się tym kodem z drugim graczem</p>
+                    <h2 class="text-2xl font-bold text-ink-800 mb-4">{{ $t('waitingForPlayer') }}</h2>
+                    <p class="text-ink-600 mb-4">{{ $t('gameCodeLabel') }}: <span class="font-bold text-2xl">{{ room?.code }}</span></p>
+                    <p class="text-ink-600">{{ $t('shareCode') }}</p>
                     <div class="mt-6">
                         <button @click="resetGame" class="bg-gray-500 hover:bg-gray-600 text-white font-sans font-bold py-2 px-4 rounded">
-                            Powrót do menu
+                            {{ $t('backToMenu') }}
                         </button>
                     </div>
                 </div>
@@ -176,86 +193,86 @@
                 <!-- Game Info -->
                 <div class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-ink-800">Gra w toku</h2>
+                        <h2 class="text-xl font-bold text-ink-800">{{ $t('gameInProgress') }}</h2>
                         <div class="text-ink-600 font-sans">
-                            Runda {{ room?.currentRound || 1 }}/{{ room?.maxRounds || 3 }}
+                            {{ $t('round') }} {{ room?.currentRound || 1 }}/{{ room?.maxRounds || 3 }}
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 gap-4">
                         <div class="text-center">
                             <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
                             <div class="text-2xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
-                            <div class="text-sm text-ink-600">Ukończone rundy: {{ room?.roundsCompleted?.[room?.players[0]?.id] || 0 }}</div>
+                            <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{ room?.roundsCompleted?.[room?.players[0]?.id] || 0 }}</div>
                         </div>
                         <div class="text-center">
                             <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
                             <div class="text-2xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
-                            <div class="text-sm text-ink-600">Ukończone rundy: {{ room?.roundsCompleted?.[room?.players[1]?.id] || 0 }}</div>
+                            <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{ room?.roundsCompleted?.[room?.players[1]?.id] || 0 }}</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Question Form (when it's player's turn to ask) -->
                 <div v-if="canAskQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                    <h3 class="text-xl font-bold text-ink-800 mb-4">Twoja kolej - zadaj pytanie!</h3>
-                    
+                    <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('yourTurnAsk') }}</h3>
+
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-ink-700 font-sans mb-2">Treść pytania:</label>
-                            <textarea 
+                            <label class="block text-ink-700 font-sans mb-2">{{ $t('questionText') }}:</label>
+                            <textarea
                                 v-model="questionForm.text"
                                 class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
                                 rows="3"
-                                placeholder="Wpisz swoje pytanie..."
+                                :placeholder="$t('enterQuestion')"
                             ></textarea>
                         </div>
-                        
+
                         <div>
-                            <label class="block text-ink-700 font-sans mb-2">Odpowiedzi:</label>
+                            <label class="block text-ink-700 font-sans mb-2">{{ $t('answers') }}:</label>
                             <div class="space-y-2">
                                 <div v-for="(answer, index) in questionForm.answers" :key="index" class="flex items-center space-x-2">
-                                    <input 
-                                        type="radio" 
-                                        :name="'correct-answer'" 
-                                        :value="index" 
+                                    <input
+                                        type="radio"
+                                        :name="'correct-answer'"
+                                        :value="index"
                                         v-model="questionForm.correctAnswer"
                                         class="text-parchment-500"
                                     >
-                                    <input 
+                                    <input
                                         v-model="questionForm.answers[index]"
-                                        type="text" 
+                                        type="text"
                                         class="flex-1 p-2 border border-parchment-400 rounded bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                        :placeholder="'Odpowiedź ' + (index + 1)"
+                                        :placeholder="$t('answer') + ' ' + (index + 1)"
                                     >
                                 </div>
                             </div>
-                            <p class="text-sm text-ink-600 mt-2">Zaznacz poprawną odpowiedź</p>
+                            <p class="text-sm text-ink-600 mt-2">{{ $t('selectCorrectAnswer') }}</p>
                         </div>
-                        
-                        <button 
+
+                        <button
                             @click="submitQuestion"
                             class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                         >
-                            Zadaj pytanie
+                            {{ $t('askQuestion') }}
                         </button>
                     </div>
                 </div>
 
                 <!-- Answer Form (when it's player's turn to answer) -->
                 <div v-if="canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                    <h3 class="text-xl font-bold text-ink-800 mb-4">{{ otherPlayer?.name }} pyta:</h3>
-                    
+                    <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('playerAsks', { name: otherPlayer?.name }) }}:</h3>
+
                     <div class="bg-parchment-50 p-4 rounded-lg mb-4">
                         <p class="text-ink-800 text-lg">{{ room?.currentQuestion?.text }}</p>
                     </div>
-                    
+
                     <div class="space-y-2 mb-4">
                         <div v-for="(answer, index) in room?.currentQuestion?.answers" :key="index">
                             <label class="flex items-center space-x-3 p-3 border border-parchment-300 rounded-lg hover:bg-parchment-50 cursor-pointer">
-                                <input 
-                                    type="radio" 
-                                    :value="index" 
+                                <input
+                                    type="radio"
+                                    :value="index"
                                     v-model="selectedAnswer"
                                     class="text-parchment-500"
                                 >
@@ -263,26 +280,26 @@
                             </label>
                         </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                         @click="submitAnswer"
                         class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                         :disabled="selectedAnswer === -1"
                     >
-                        Odpowiedz
+                        {{ $t('answer') }}
                     </button>
                 </div>
 
                 <!-- Waiting for other player -->
                 <div v-if="!canAskQuestion && !canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 text-center">
-                    <h3 class="text-xl font-bold text-ink-800 mb-2">Oczekiwanie...</h3>
+                    <h3 class="text-xl font-bold text-ink-800 mb-2">{{ $t('waiting') }}...</h3>
                     <p class="text-ink-600 flex items-center justify-center">
                         <span class="inline-block w-4 h-4 border-2 border-ink-600 border-t-transparent rounded-full animate-spin mr-2"></span>
                         <template v-if="room?.currentQuestion">
-                            {{ otherPlayer?.name }} myśli nad odpowiedzią
+                            {{ $t('playerThinking', { name: otherPlayer?.name }) }}
                         </template>
                         <template v-else>
-                            {{ otherPlayer?.name }} przygotowuje pytanie
+                            {{ $t('playerPreparing', { name: otherPlayer?.name }) }}
                         </template>
                     </p>
                 </div>
@@ -291,11 +308,11 @@
             <!-- Finished State -->
             <div v-if="gameState === 'finished'" class="text-center">
                 <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                    <h2 class="text-3xl font-bold text-ink-800 mb-4">🎉 Gra zakończona!</h2>
+                    <h2 class="text-3xl font-bold text-ink-800 mb-4">🎉 {{ $t('gameFinished') }}!</h2>
                     <p class="text-xl text-ink-600 mb-6">
-                        Zwycięzca: <span class="font-bold">{{ room?.winner ? room.players.find(p => p.id === room.winner)?.name : 'Remis' }}</span>
+                        {{ $t('winner') }}: <span class="font-bold">{{ room?.winner ? room.players.find(p => p.id === room.winner)?.name : $t('tie') }}</span>
                     </p>
-                    
+
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div class="text-center">
                             <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
@@ -306,9 +323,9 @@
                             <div class="text-3xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
                         </div>
                     </div>
-                    
+
                     <button @click="resetGameAfterFinish" class="bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
-                        Nowa gra
+                        {{ $t('newGame') }}
                     </button>
                 </div>
             </div>
@@ -316,9 +333,196 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+        const { createI18n } = VueI18n;
 
-        createApp({
+        // Funkcja do wykrywania języka przeglądarki
+        function getBrowserLanguage() {
+            // Najpierw sprawdź zapisane preferencje
+            const savedLanguage = localStorage.getItem('preferredLanguage');
+            if (savedLanguage) {
+                return savedLanguage;
+            }
+
+            // Jeśli nie ma zapisanych preferencji, użyj języka przeglądarki
+            const lang = navigator.language || navigator.userLanguage;
+            const langCode = lang.split('-')[0];
+            const supportedLanguages = ['pl', 'en', 'es', 'de'];
+            return supportedLanguages.includes(langCode) ? langCode : 'en';
+        }
+
+        // Konfiguracja tłumaczeń
+        const messages = {
+            pl: {
+                subtitle: 'Gra dla dwóch graczy',
+                createNewGame: 'Stwórz nową grę',
+                yourName: 'Twoje imię',
+                enterYourName: 'Wpisz swoje imię...',
+                createNewGameButton: 'Stwórz nową grę',
+                or: 'lub',
+                joinGame: 'Dołącz do gry',
+                gameCode: 'Kod gry',
+                enterGameCode: 'Wpisz 4-cyfrowy kod...',
+                joinGameButton: 'Dołącz do gry',
+                waitingForPlayer: 'Oczekiwanie na drugiego gracza...',
+                gameCodeLabel: 'Kod gry',
+                shareCode: 'Podziel się tym kodem z drugim graczem',
+                backToMenu: 'Powrót do menu',
+                gameInProgress: 'Gra w toku',
+                round: 'Runda',
+                completedRounds: 'Ukończone rundy',
+                yourTurnAsk: 'Twoja kolej - zadaj pytanie!',
+                questionText: 'Treść pytania',
+                enterQuestion: 'Wpisz swoje pytanie...',
+                answers: 'Odpowiedzi',
+                answer: 'Odpowiedź',
+                selectCorrectAnswer: 'Zaznacz poprawną odpowiedź',
+                askQuestion: 'Zadaj pytanie',
+                playerAsks: '{name} pyta',
+                waiting: 'Oczekiwanie',
+                playerThinking: '{name} myśli nad odpowiedzią',
+                playerPreparing: '{name} przygotowuje pytanie',
+                gameFinished: 'Gra zakończona!',
+                winner: 'Zwycięzca',
+                tie: 'Remis',
+                newGame: 'Nowa gra',
+                errorMinAnswers: 'Podaj co najmniej 2 odpowiedzi',
+                errorEmptyName: 'Podaj swoje imię',
+                errorEmptyCode: 'Podaj kod gry',
+                errorEmptyQuestion: 'Podaj treść pytania',
+                errorInvalidCode: 'Podaj prawidłowy 4-cyfrowy kod gry',
+                errorConnection: 'Błąd połączenia z serwerem'
+            },
+            en: {
+                subtitle: 'Game for two players',
+                createNewGame: 'Create New Game',
+                yourName: 'Your Name',
+                enterYourName: 'Enter your name...',
+                createNewGameButton: 'Create New Game',
+                or: 'or',
+                joinGame: 'Join Game',
+                gameCode: 'Game Code',
+                enterGameCode: 'Enter 4-digit code...',
+                joinGameButton: 'Join Game',
+                waitingForPlayer: 'Waiting for second player...',
+                gameCodeLabel: 'Game Code',
+                shareCode: 'Share this code with the second player',
+                backToMenu: 'Back to Menu',
+                gameInProgress: 'Game in Progress',
+                round: 'Round',
+                completedRounds: 'Completed Rounds',
+                yourTurnAsk: 'Your turn - ask a question!',
+                questionText: 'Question Text',
+                enterQuestion: 'Enter your question...',
+                answers: 'Answers',
+                answer: 'Answer',
+                selectCorrectAnswer: 'Select the correct answer',
+                askQuestion: 'Ask Question',
+                playerAsks: '{name} asks',
+                waiting: 'Waiting',
+                playerThinking: '{name} is thinking about the answer',
+                playerPreparing: '{name} is preparing a question',
+                gameFinished: 'Game Finished!',
+                winner: 'Winner',
+                tie: 'Tie',
+                newGame: 'New Game',
+                errorMinAnswers: 'Provide at least 2 answers',
+                errorEmptyName: 'Enter your name',
+                errorEmptyCode: 'Enter game code',
+                errorEmptyQuestion: 'Enter question text',
+                errorInvalidCode: 'Enter a valid 4-digit game code',
+                errorConnection: 'Connection error with server'
+            },
+            es: {
+                subtitle: 'Juego para dos jugadores',
+                createNewGame: 'Crear Nuevo Juego',
+                yourName: 'Tu Nombre',
+                enterYourName: 'Ingresa tu nombre...',
+                createNewGameButton: 'Crear Nuevo Juego',
+                or: 'o',
+                joinGame: 'Unirse al Juego',
+                gameCode: 'Código del Juego',
+                enterGameCode: 'Ingresa código de 4 dígitos...',
+                joinGameButton: 'Unirse al Juego',
+                waitingForPlayer: 'Esperando al segundo jugador...',
+                gameCodeLabel: 'Código del Juego',
+                shareCode: 'Comparte este código con el segundo jugador',
+                backToMenu: 'Volver al Menú',
+                gameInProgress: 'Juego en Progreso',
+                round: 'Ronda',
+                completedRounds: 'Rondas Completadas',
+                yourTurnAsk: '¡Tu turno - haz una pregunta!',
+                questionText: 'Texto de la Pregunta',
+                enterQuestion: 'Ingresa tu pregunta...',
+                answers: 'Respuestas',
+                answer: 'Respuesta',
+                selectCorrectAnswer: 'Selecciona la respuesta correcta',
+                askQuestion: 'Hacer Pregunta',
+                playerAsks: '{name} pregunta',
+                waiting: 'Esperando',
+                playerThinking: '{name} está pensando en la respuesta',
+                playerPreparing: '{name} está preparando una pregunta',
+                gameFinished: '¡Juego Terminado!',
+                winner: 'Ganador',
+                tie: 'Empate',
+                newGame: 'Nuevo Juego',
+                errorMinAnswers: 'Proporciona al menos 2 respuestas',
+                errorEmptyName: 'Ingresa tu nombre',
+                errorEmptyCode: 'Ingresa el código del juego',
+                errorEmptyQuestion: 'Ingresa el texto de la pregunta',
+                errorInvalidCode: 'Ingresa un código de juego válido de 4 dígitos',
+                errorConnection: 'Error de conexión con el servidor'
+            },
+            de: {
+                subtitle: 'Spiel für zwei Spieler',
+                createNewGame: 'Neues Spiel Erstellen',
+                yourName: 'Dein Name',
+                enterYourName: 'Gib deinen Namen ein...',
+                createNewGameButton: 'Neues Spiel Erstellen',
+                or: 'oder',
+                joinGame: 'Spiel Beitreten',
+                gameCode: 'Spielcode',
+                enterGameCode: 'Gib 4-stelligen Code ein...',
+                joinGameButton: 'Spiel Beitreten',
+                waitingForPlayer: 'Warten auf zweiten Spieler...',
+                gameCodeLabel: 'Spielcode',
+                shareCode: 'Teile diesen Code mit dem zweiten Spieler',
+                backToMenu: 'Zurück zum Menü',
+                gameInProgress: 'Spiel läuft',
+                round: 'Runde',
+                completedRounds: 'Abgeschlossene Runden',
+                yourTurnAsk: 'Du bist dran - stelle eine Frage!',
+                questionText: 'Fragetext',
+                enterQuestion: 'Gib deine Frage ein...',
+                answers: 'Antworten',
+                answer: 'Antwort',
+                selectCorrectAnswer: 'Wähle die richtige Antwort',
+                askQuestion: 'Frage Stellen',
+                playerAsks: '{name} fragt',
+                waiting: 'Warten',
+                playerThinking: '{name} denkt über die Antwort nach',
+                playerPreparing: '{name} bereitet eine Frage vor',
+                gameFinished: 'Spiel Beendet!',
+                winner: 'Gewinner',
+                tie: 'Unentschieden',
+                newGame: 'Neues Spiel',
+                errorMinAnswers: 'Gib mindestens 2 Antworten an',
+                errorEmptyName: 'Gib deinen Namen ein',
+                errorEmptyCode: 'Gib den Spielcode ein',
+                errorEmptyQuestion: 'Gib den Fragetext ein',
+                errorInvalidCode: 'Gib einen gültigen 4-stelligen Spielcode ein',
+                errorConnection: 'Verbindungsfehler mit dem Server'
+            }
+        };
+
+        // Tworzenie instancji i18n
+        const i18n = createI18n({
+            locale: getBrowserLanguage(),
+            fallbackLocale: 'en',
+            messages
+        });
+
+        const app = createApp({
             setup() {
                 const gameState = ref('menu');
                 const playerNameCreate = ref('');
@@ -332,16 +536,30 @@
                 const error = ref('');
                 const connectionState = ref('disconnected');
 
+                // Obsługa języka
+                const currentLocale = ref(getBrowserLanguage());
+
+                const changeLanguage = (locale) => {
+                    i18n.global.locale = locale;
+                    currentLocale.value = locale;
+                    document.documentElement.lang = locale;
+                    localStorage.setItem('preferredLanguage', locale);
+                };
+
+                // Inicjalizacja - ustaw język na podstawie getBrowserLanguage
+                const initialLocale = getBrowserLanguage();
+                changeLanguage(initialLocale);
+
                 const questionForm = ref({
                     text: '',
                     answers: ['', '', '', '', ''],
                     correctAnswer: 0
                 });
-                
+
                 const selectedAnswer = ref(-1);
 
                 const isMyTurn = computed(() => {
-                    return room.value && currentPlayer.value && 
+                    return room.value && currentPlayer.value &&
                            room.value.currentPlayerTurn === currentPlayer.value.id;
                 });
 
@@ -528,14 +746,14 @@
 
                 function createGame() {
                     if (!playerNameCreate.value.trim()) {
-                        error.value = 'Podaj swoje imię';
+                        error.value = i18n.global.t('errorEmptyName');
                         return;
                     }
-                    
+
                     currentPlayerName.value = playerNameCreate.value.trim();
                     error.value = '';
                     connectWebSocket();
-                    
+
                     socket.value.onopen = () => {
                         socket.value.send(JSON.stringify({
                             type: 'create',
@@ -546,23 +764,23 @@
 
                 function joinGame() {
                     if (!playerNameJoin.value.trim()) {
-                        error.value = 'Podaj swoje imię';
+                        error.value = i18n.global.t('errorEmptyName');
                         return;
                     }
-                    
+
                     if (!gameCode.value.trim() || gameCode.value.trim().length !== 4) {
-                        error.value = 'Podaj prawidłowy 4-cyfrowy kod gry';
+                        error.value = i18n.global.t('errorInvalidCode');
                         return;
                     }
-                    
+
                     currentPlayerName.value = playerNameJoin.value.trim();
                     error.value = '';
                     connectWebSocket();
-                    
+
                     socket.value.onopen = () => {
                         socket.value.send(JSON.stringify({
                             type: 'join',
-                            data: { 
+                            data: {
                                 playerName: currentPlayerName.value,
                                 gameCode: gameCode.value.trim().toUpperCase()
                             }
@@ -577,13 +795,13 @@
                     console.log('isMyTurn:', isMyTurn.value);
 
                     if (!questionForm.value.text.trim()) {
-                        error.value = 'Podaj treść pytania';
+                        error.value = i18n.global.t('errorEmptyQuestion');
                         return;
                     }
 
                     const filledAnswers = questionForm.value.answers.filter(a => a.trim());
                     if (filledAnswers.length < 2) {
-                        error.value = 'Podaj co najmniej 2 odpowiedzi';
+                        error.value = i18n.global.t('errorMinAnswers');
                         return;
                     }
 
@@ -766,6 +984,8 @@
                     canAnswerQuestion,
                     isConnected,
                     isReconnecting,
+                    currentLocale,
+                    changeLanguage,
                     createGame,
                     joinGame,
                     submitQuestion,
@@ -773,7 +993,11 @@
                     resetGame
                 };
             }
-        }).mount('#app');
+        });
+
+        // Używanie i18n plugin
+        app.use(i18n);
+        app.mount('#app');
     </script>
 </body>
 </html>
