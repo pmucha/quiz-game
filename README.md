@@ -1,3 +1,125 @@
+# Quiz Multiplayer - Game for Two
+
+Multiplayer quiz game for two players built with Deno, TypeScript, WebSockets, and Deno KV.
+
+## ✨ Features
+
+- **Real-time multiplayer** - WebSocket communication
+- **Turn-based system** - fair gameplay with equal chances for both players
+- **Rounds** - game lasts up to 3 rounds
+- **Scoring** - first player to score 3 points wins (but only if the second player had equal chances)
+- **Tie-breaker** - in case of a tie, the game continues until resolved
+- **Responsive design** - styled like old, yellowed books
+- **Automatic room management** - cleanup of old games
+
+## 🎮 How to play
+
+1. **Create game** - enter your name and click "Create new game"
+2. **Share code** - pass the 4-digit code to the second player
+3. **Join game** - second player enters the code and their name
+4. **Ask questions** - during your turn, create a multiple choice question
+5. **Answer** - when the opponent asks a question, choose the answer
+6. **Win** - first to score 3 points wins!
+
+## 🏆 Turn System
+
+- Each player has equal chances to ask questions and answer
+- Game proceeds in rounds - each player must have a chance to answer in a round
+- If a player reaches 3 points but the opponent hasn't had equal chances yet, the game continues
+- In case of a tie after 3 rounds, the game goes into tie-breaker mode
+
+## 🚀 Local Development
+
+### Requirements
+- [Deno](https://deno.land/) v2.4+
+
+### Installation and running
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd quiz-game
+
+# Run development server
+deno task dev
+```
+
+The application will be available at `http://localhost:8000`
+
+## 📦 Deployment to Deno Deploy
+
+1. **Prepare the project**:
+   ```bash
+   # Make sure all files are ready
+   deno task check
+   ```
+
+2. **Deploy via GitHub**:
+   - Push code to GitHub
+   - Connect repository with [Deno Deploy](https://dash.deno.com/)
+   - Set entry point to `main.ts`
+   - Deployment will be executed automatically
+
+3. **Deploy via CLI**:
+   ```bash
+   # Install Deno Deploy CLI
+   deno install --allow-all --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+
+   # Deploy project
+   deployctl deploy --project=your-project-name main.ts
+   ```
+
+## 🛠 Technologies
+
+- **Backend**: Deno + TypeScript
+- **Database**: Deno KV (built-in key-value database)
+- **WebSockets**: Native Deno WebSocket API
+- **Frontend**: Vue 3 + Tailwind CSS
+- **Hosting**: Deno Deploy
+
+## 📁 Project Structure
+
+```
+quiz-game/
+├── main.ts                # Main server
+├── deno.json              # Deno configuration
+├── public/
+│   └── index.html         # Frontend application
+├── src/
+│   ├── types/
+│   │   └── game.ts        # TypeScript type definitions
+│   └── server/
+│       └── gameManager.ts # Game logic and room management
+└── README.md
+```
+
+## 🎨 Design
+
+The application was designed in the style of old, yellowed books with:
+- Parchment and ink color scheme
+- Serif fonts (Crimson Text, Libre Baskerville)
+- Shadows and textures resembling old pages
+- Responsive layout
+
+## 🔧 Configuration
+
+### Environment variables
+- `PORT` - server port (default 8000)
+
+### Deno permissions
+The application requires the following permissions:
+- `--allow-net` - network communication
+- `--allow-read` - reading static files
+- `--allow-write` - writing to Deno KV
+- `--allow-env` - access to environment variables
+- `--unstable-kv` - access to Deno KV
+
+## 📝 License
+
+MIT License
+
+---
+
 # Quiz Multiplayer - Gra dla Dwóch
 
 Multiplayer quiz game dla dwóch graczy zbudowana z Deno, TypeScript, WebSockets i Deno KV.
@@ -31,7 +153,7 @@ Multiplayer quiz game dla dwóch graczy zbudowana z Deno, TypeScript, WebSockets
 ## 🚀 Uruchomienie lokalnie
 
 ### Wymagania
-- [Deno](https://deno.land/) v1.40+
+- [Deno](https://deno.land/) v2.4+
 
 ### Instalacja i uruchomienie
 
