@@ -276,7 +276,15 @@
                 <!-- Waiting for other player -->
                 <div v-if="!canAskQuestion && !canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 text-center">
                     <h3 class="text-xl font-bold text-ink-800 mb-2">Oczekiwanie...</h3>
-                    <p class="text-ink-600">{{ otherPlayer?.name }} przygotowuje pytanie</p>
+                    <p class="text-ink-600 flex items-center justify-center">
+                        <span class="inline-block w-4 h-4 border-2 border-ink-600 border-t-transparent rounded-full animate-spin mr-2"></span>
+                        <template v-if="room?.currentQuestion">
+                            {{ otherPlayer?.name }} myśli nad odpowiedzią
+                        </template>
+                        <template v-else>
+                            {{ otherPlayer?.name }} przygotowuje pytanie
+                        </template>
+                    </p>
                 </div>
             </div>
 
