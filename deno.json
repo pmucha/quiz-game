@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "exports": "./main.ts",
   "tasks": {
-    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --unstable-kv main.ts",
+    "dev": "deno run --watch --allow-net --allow-read --allow-write --allow-env --unstable-kv main.ts",
     "start": "deno run --allow-net --allow-read --allow-write --allow-env --unstable-kv main.ts"
   },
   "imports": {
