@@ -67,71 +67,69 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
         const result = await gameManager.createRoom(data.playerName);
         connection.roomId = result.room.id;
         connection.playerId = result.playerId;
-        
         socket.send(JSON.stringify({
           type: 'gameUpdate',
-          data: { 
+          data: {
             room: result.room,
-            message: `Gra utworzona! Kod: ${result.room.code}`
+            code: 'gameCreated',
+            params: { code: result.room.code }
           }
         }));
         break;
       }
-      
       case 'join': {
         const data = message.data as JoinGameData;
         const result = await gameManager.joinRoom(data.gameCode, data.playerName);
         if (result) {
           connection.roomId = result.room.id;
           connection.playerId = result.playerId;
-          
-          // Notify both players
           broadcastToRoom(result.room.id, {
             type: 'gameUpdate',
-            data: { 
+            data: {
               room: result.room,
-              message: `${data.playerName} dołączył do gry! Gra rozpoczęta!`
+              code: 'playerJoined',
+              params: { name: data.playerName }
             }
           });
         } else {
           socket.send(JSON.stringify({
             type: 'error',
-            data: { message: 'Nie znaleziono gry o podanym kodzie lub gra jest pełna' }
+            data: { code: 'errorJoinRoom' }
           }));
         }
         break;
       }
       
-      case 'question': {
+      case 'submitQuestion': {
         if (!connection.roomId || !connection.playerId) return;
-        
+
         const data = message.data as QuestionData;
-        const room = await gameManager.submitQuestion(
+        const result = await gameManager.submitQuestion(
           connection.roomId,
           connection.playerId,
           data
         );
-        
-        if (room) {
+
+        if (result) {
           broadcastToRoom(connection.roomId, {
             type: 'gameUpdate',
-            data: { 
-              room,
-              message: 'Nowe pytanie zostało zadane!'
+            data: {
+              room: result,
+              code: 'questionSubmitted'
             }
           });
         } else {
           socket.send(JSON.stringify({
             type: 'error',
-            data: { message: 'Nie możesz teraz zadać pytania' }
+            data: { code: 'errorSubmitQuestion' }
           }));
         }
         break;
       }
       
-      case 'answer': {
+      case 'submitAnswer': {
         if (!connection.roomId || !connection.playerId) return;
-        
+
         const data = message.data as AnswerData;
         const result = await gameManager.submitAnswer(
           connection.roomId,
@@ -139,19 +137,20 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
           data.questionId,
           data.selectedAnswer
         );
-        
+
         if (result) {
           broadcastToRoom(connection.roomId, {
             type: 'gameUpdate',
-            data: { 
+            data: {
               room: result.room,
-              message: result.message
+              code: result.messageCode,
+              params: result.messageParams
             }
           });
         } else {
           socket.send(JSON.stringify({
             type: 'error',
-            data: { message: 'Nie możesz teraz odpowiedzieć na pytanie' }
+            data: { code: 'errorSubmitAnswer' }
           }));
         }
         break;
@@ -187,7 +186,7 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
                 data: {
                   room: result.room,
                   player: result.player,
-                  message: 'Pomyślnie przywrócono połączenie!'
+                  code: 'reconnectSuccess'
                 }
               }));
 
@@ -196,20 +195,21 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
                 type: 'gameUpdate',
                 data: {
                   room: result.room,
-                  message: `${data.playerName} wrócił do gry!`
+                  code: 'playerRejoined',
+                  params: { name: data.playerName }
                 }
               }, socket);
             }
           } else {
             socket.send(JSON.stringify({
               type: 'rejoinFailed',
-              data: { message: 'Nie można przywrócić gry. Gracz nie został znaleziony.' }
+              data: { code: 'errorPlayerNotFound' }
             }));
           }
         } else {
           socket.send(JSON.stringify({
             type: 'rejoinFailed',
-            data: { message: 'Nie można przywrócić gry. Pokój nie istnieje.' }
+            data: { code: 'errorRoomNotFound' }
           }));
         }
         break;

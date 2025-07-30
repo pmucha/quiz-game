@@ -120,7 +120,8 @@ export class GameManager {
   async submitAnswer(roomId: string, playerId: string, questionId: string, selectedAnswer: number): Promise<{
     room: GameRoom;
     isCorrect: boolean;
-    message: string;
+    messageCode: string;
+    messageParams?: Record<string, any>;
   } | null> {
     const room = this.rooms.get(roomId);
     if (!room || room.gameState !== 'playing' || !room.currentQuestion) {
@@ -133,20 +134,26 @@ export class GameManager {
     }
 
     const isCorrect = selectedAnswer === room.currentQuestion.correctAnswer;
-    let message = '';
+    let messageCode = '';
+    let messageParams: Record<string, any> = {};
 
     if (isCorrect) {
       // Award point to answering player
       const answeringPlayer = room.players.find(p => p.id === playerId);
       if (answeringPlayer) {
         answeringPlayer.score++;
-        message = `${answeringPlayer.name} odpowiedział poprawnie i zdobywa punkt!`;
+        messageCode = 'answerCorrect';
+        messageParams = { name: answeringPlayer.name };
       }
     } else {
       const answeringPlayer = room.players.find(p => p.id === playerId);
       const askingPlayer = room.players.find(p => p.id === room.currentQuestion!.askedBy);
       if (answeringPlayer && askingPlayer) {
-        message = `${answeringPlayer.name} odpowiedział niepoprawnie. Poprawna odpowiedź to: ${room.currentQuestion.answers[room.currentQuestion.correctAnswer]}`;
+        messageCode = 'answerIncorrect';
+        messageParams = {
+          name: answeringPlayer.name,
+          correct: room.currentQuestion.answers[room.currentQuestion.correctAnswer]
+        };
       }
     }
 
@@ -157,7 +164,7 @@ export class GameManager {
     room.currentQuestion = null;
 
     // Check if both players completed the current round
-    const allPlayersCompletedRound = room.players.every(player => 
+    const allPlayersCompletedRound = room.players.every(player =>
       (room.roundsCompleted[player.id] || 0) >= room.currentRound
     );
 
@@ -167,21 +174,24 @@ export class GameManager {
         // Game finished - determine winner
         const maxScore = Math.max(...room.players.map(p => p.score));
         const winners = room.players.filter(p => p.score === maxScore);
-        
+
         if (winners.length === 1) {
           room.winner = winners[0].id;
           room.gameState = 'finished';
-          message += ` Gra zakończona! Wygrywa ${winners[0].name} z wynikiem ${maxScore} punktów!`;
+          messageCode = 'gameFinishedWinner';
+          messageParams = { name: winners[0].name, score: maxScore };
         } else {
           // Tie - continue with sudden death rounds
           room.currentRound++;
           room.maxRounds++;
-          message += ` Remis! Runda dogrywki ${room.currentRound}!`;
+          messageCode = 'tieBreaker';
+          messageParams = { round: room.currentRound };
         }
       } else {
         // Next round
         room.currentRound++;
-        message += ` Koniec rundy ${room.currentRound - 1}. Rozpoczyna się runda ${room.currentRound}!`;
+        messageCode = 'nextRound';
+        messageParams = { prev: room.currentRound - 1, next: room.currentRound };
       }
     }
 
@@ -196,12 +206,13 @@ export class GameManager {
       if (otherPlayer) {
         const winnerRounds = room.roundsCompleted[winningPlayer.id] || 0;
         const otherRounds = room.roundsCompleted[otherPlayer.id] || 0;
-        
+
         // If the other player had equal or more chances, end the game
         if (otherRounds >= winnerRounds) {
           room.winner = winningPlayer.id;
           room.gameState = 'finished';
-          message += ` ${winningPlayer.name} osiąga 3 punkty i wygrywa grę!`;
+          messageCode = 'gameFinished3Points';
+          messageParams = { name: winningPlayer.name };
         }
       }
     }
@@ -209,7 +220,7 @@ export class GameManager {
     this.rooms.set(roomId, room);
     await this.kv.set(['room', roomId], room);
 
-    return { room, isCorrect, message };
+    return { room, isCorrect, messageCode, messageParams };
   }
 
   async disconnectPlayer(roomId: string, playerId: string): Promise<GameRoom | null> {

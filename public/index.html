@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,16 +41,16 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
-        
+
         .book-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
-        
+
         .book-page {
             background: linear-gradient(135deg, #fefdf8 0%, #fdf9e7 100%);
             position: relative;
         }
-        
+
         .book-page::before {
             content: '';
             position: absolute;
@@ -68,268 +69,245 @@
         <div class="container mx-auto px-4 py-8 max-w-4xl" :key="currentLocale">
             <!-- Language Selector -->
             <div class="absolute top-4 right-4">
-                <select
-                    :value="currentLocale"
-                    @change="changeLanguage($event.target.value)"
-                    class="text-sm bg-parchment-100 border border-parchment-300 rounded px-2 py-1 text-ink-700 focus:outline-none focus:ring-1 focus:ring-parchment-500"
-                >
+                <select :value="currentLocale" @change="changeLanguage($event.target.value)"
+                    class="text-sm bg-parchment-100 border border-parchment-300 rounded px-2 py-1 text-ink-700 focus:outline-none focus:ring-1 focus:ring-parchment-500">
                     <option value="en">🇺🇸 English</option>
                     <option value="pl">🇵🇱 Polski</option>
                     <option value="es">🇪🇸 Español</option>
                     <option value="de">🇩🇪 Deutsch</option>
+                    <option value="szl">🏴 Ślōnski</option>
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                    <option value="pt">🇧🇷 Português</option>
+                    <option value="ga">🇮🇪 Gaeilge</option>
+                    <option value="hi">🇮🇳 हिन्दी</option>
                 </select>
             </div>
-            </div>
+        </div>
 
-            <header class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-ink-800 mb-2">📚 Quiz Multiplayer</h1>
-                <p class="text-ink-600 text-lg">{{ $t('subtitle') }}</p>
-            </header>
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-ink-800 mb-2">📚 Quiz Multiplayer</h1>
+            <p class="text-ink-600 text-lg">{{ $t('subtitle') }}</p>
+        </header>
 
-            <!-- Error Message -->
-            <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {{ error }}
-            </div>
+        <!-- Error Message -->
+        <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ error }}
+        </div>
 
-            <!-- Success Message -->
-            <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                {{ message }}
-            </div>
+        <!-- Success Message -->
+        <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ message }}
+        </div>
 
-            <!-- Menu State -->
-            <div v-if="gameState === 'menu'" class="max-w-md mx-auto">
-                <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                    <!-- Create New Game Section -->
-                    <div class="mb-8">
-                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('createNewGame') }}</h2>
+        <!-- Menu State -->
+        <div v-if="gameState === 'menu'" class="max-w-md mx-auto">
+            <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+                <!-- Create New Game Section -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('createNewGame') }}</h2>
 
-                        <div class="space-y-4 mb-6">
-                            <div>
-                                <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
-                                <input
-                                    v-model="playerNameCreate"
-                                    type="text"
-                                    class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                    :placeholder="$t('enterYourName')"
-                                    maxlength="20"
-                                    @keyup.enter="createGame"
-                                >
-                            </div>
-                        </div>
-
-                        <button
-                            @click="createGame"
-                            class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                        >
-                            🎲 {{ $t('createNewGameButton') }}
-                        </button>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="relative my-8">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-parchment-400"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-parchment-100 text-ink-600 font-sans">{{ $t('or') }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Join Game Section -->
-                    <div>
-                        <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('joinGame') }}</h2>
-
-                        <div class="space-y-4 mb-6">
-                            <div>
-                                <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
-                                <input
-                                    v-model="playerNameJoin"
-                                    type="text"
-                                    class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                    :placeholder="$t('enterYourName')"
-                                    maxlength="20"
-                                >
-                            </div>
-
-                            <div>
-                                <label class="block text-ink-700 font-sans mb-2">{{ $t('gameCode') }}:</label>
-                                <input
-                                    v-model="gameCode"
-                                    type="text"
-                                    class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                    :placeholder="$t('enterGameCode')"
-                                    maxlength="4"
-                                    @keyup.enter="joinGame"
-                                >
-                            </div>
-                        </div>
-
-                        <button
-                            @click="joinGame"
-                            class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                        >
-                            🚪 {{ $t('joinGameButton') }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Waiting State -->
-            <div v-if="gameState === 'waiting'" class="text-center">
-                <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                    <h2 class="text-2xl font-bold text-ink-800 mb-4">{{ $t('waitingForPlayer') }}</h2>
-                    <p class="text-ink-600 mb-4">{{ $t('gameCodeLabel') }}: <span class="font-bold text-2xl">{{ room?.code }}</span></p>
-                    <p class="text-ink-600">{{ $t('shareCode') }}</p>
-                    <div class="mt-6">
-                        <button @click="resetGame" class="bg-gray-500 hover:bg-gray-600 text-white font-sans font-bold py-2 px-4 rounded">
-                            {{ $t('backToMenu') }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Playing State -->
-            <div v-if="gameState === 'playing'" class="space-y-6">
-                <!-- Game Info -->
-                <div class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-ink-800">{{ $t('gameInProgress') }}</h2>
-                        <div class="text-ink-600 font-sans">
-                            {{ $t('round') }} {{ room?.currentRound || 1 }}/{{ room?.maxRounds || 3 }}
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="text-center">
-                            <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
-                            <div class="text-2xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
-                            <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{ room?.roundsCompleted?.[room?.players[0]?.id] || 0 }}</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
-                            <div class="text-2xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
-                            <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{ room?.roundsCompleted?.[room?.players[1]?.id] || 0 }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Question Form (when it's player's turn to ask) -->
-                <div v-if="canAskQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                    <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('yourTurnAsk') }}</h3>
-
-                    <div class="space-y-4">
+                    <div class="space-y-4 mb-6">
                         <div>
-                            <label class="block text-ink-700 font-sans mb-2">{{ $t('questionText') }}:</label>
-                            <textarea
-                                v-model="questionForm.text"
+                            <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
+                            <input v-model="playerNameCreate" type="text"
                                 class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                rows="3"
-                                :placeholder="$t('enterQuestion')"
-                            ></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-ink-700 font-sans mb-2">{{ $t('answers') }}:</label>
-                            <div class="space-y-2">
-                                <div v-for="(answer, index) in questionForm.answers" :key="index" class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        :name="'correct-answer'"
-                                        :value="index"
-                                        v-model="questionForm.correctAnswer"
-                                        class="text-parchment-500"
-                                    >
-                                    <input
-                                        v-model="questionForm.answers[index]"
-                                        type="text"
-                                        class="flex-1 p-2 border border-parchment-400 rounded bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                        :placeholder="$t('answer') + ' ' + (index + 1)"
-                                    >
-                                </div>
-                            </div>
-                            <p class="text-sm text-ink-600 mt-2">{{ $t('selectCorrectAnswer') }}</p>
-                        </div>
-
-                        <button
-                            @click="submitQuestion"
-                            class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                        >
-                            {{ $t('askQuestion') }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Answer Form (when it's player's turn to answer) -->
-                <div v-if="canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                    <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('playerAsks', { name: otherPlayer?.name }) }}:</h3>
-
-                    <div class="bg-parchment-50 p-4 rounded-lg mb-4">
-                        <p class="text-ink-800 text-lg">{{ room?.currentQuestion?.text }}</p>
-                    </div>
-
-                    <div class="space-y-2 mb-4">
-                        <div v-for="(answer, index) in room?.currentQuestion?.answers" :key="index">
-                            <label class="flex items-center space-x-3 p-3 border border-parchment-300 rounded-lg hover:bg-parchment-50 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    :value="index"
-                                    v-model="selectedAnswer"
-                                    class="text-parchment-500"
-                                >
-                                <span class="text-ink-800">{{ answer }}</span>
-                            </label>
+                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="createGame">
                         </div>
                     </div>
 
-                    <button
-                        @click="submitAnswer"
-                        class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                        :disabled="selectedAnswer === -1"
-                    >
-                        {{ $t('answer') }}
+                    <button @click="createGame"
+                        class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        🎲 {{ $t('createNewGameButton') }}
                     </button>
                 </div>
 
-                <!-- Waiting for other player -->
-                <div v-if="!canAskQuestion && !canAnswerQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 text-center">
-                    <h3 class="text-xl font-bold text-ink-800 mb-2">{{ $t('waiting') }}...</h3>
-                    <p class="text-ink-600 flex items-center justify-center">
-                        <span class="inline-block w-4 h-4 border-2 border-ink-600 border-t-transparent rounded-full animate-spin mr-2"></span>
-                        <template v-if="room?.currentQuestion">
-                            {{ $t('playerThinking', { name: otherPlayer?.name }) }}
-                        </template>
-                        <template v-else>
-                            {{ $t('playerPreparing', { name: otherPlayer?.name }) }}
-                        </template>
-                    </p>
+                <!-- Divider -->
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-parchment-400"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-parchment-100 text-ink-600 font-sans">{{ $t('or') }}</span>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Finished State -->
-            <div v-if="gameState === 'finished'" class="text-center">
-                <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                    <h2 class="text-3xl font-bold text-ink-800 mb-4">🎉 {{ $t('gameFinished') }}!</h2>
-                    <p class="text-xl text-ink-600 mb-6">
-                        {{ $t('winner') }}: <span class="font-bold">{{ room?.winner ? room.players.find(p => p.id === room.winner)?.name : $t('tie') }}</span>
-                    </p>
+                <!-- Join Game Section -->
+                <div>
+                    <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('joinGame') }}</h2>
 
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="text-center">
-                            <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
-                            <div class="text-3xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
+                            <input v-model="playerNameJoin" type="text"
+                                class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                :placeholder="$t('enterYourName')" maxlength="20">
                         </div>
-                        <div class="text-center">
-                            <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
-                            <div class="text-3xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
+
+                        <div>
+                            <label class="block text-ink-700 font-sans mb-2">{{ $t('gameCode') }}:</label>
+                            <input v-model="gameCode" type="text"
+                                class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                :placeholder="$t('enterGameCode')" maxlength="4" @keyup.enter="joinGame">
                         </div>
                     </div>
 
-                    <button @click="resetGameAfterFinish" class="bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
-                        {{ $t('newGame') }}
+                    <button @click="joinGame"
+                        class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        🚪 {{ $t('joinGameButton') }}
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- Waiting State -->
+        <div v-if="gameState === 'waiting'" class="text-center">
+            <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+                <h2 class="text-2xl font-bold text-ink-800 mb-4">{{ $t('waitingForPlayer') }}</h2>
+                <p class="text-ink-600 mb-4">{{ $t('gameCodeLabel') }}: <span class="font-bold text-2xl">{{ room?.code
+                        }}</span></p>
+                <p class="text-ink-600">{{ $t('shareCode') }}</p>
+                <div class="mt-6">
+                    <button @click="resetGame"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-sans font-bold py-2 px-4 rounded">
+                        {{ $t('backToMenu') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playing State -->
+        <div v-if="gameState === 'playing'" class="space-y-6">
+            <!-- Game Info -->
+            <div class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-ink-800">{{ $t('gameInProgress') }}</h2>
+                    <div class="text-ink-600 font-sans">
+                        {{ $t('round') }} {{ room?.currentRound || 1 }}/{{ room?.maxRounds || 3 }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
+                        <div class="text-2xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
+                        <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{
+                            room?.roundsCompleted?.[room?.players[0]?.id] || 0 }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
+                        <div class="text-2xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
+                        <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{
+                            room?.roundsCompleted?.[room?.players[1]?.id] || 0 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Form (when it's player's turn to ask) -->
+            <div v-if="canAskQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+                <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('yourTurnAsk') }}</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-ink-700 font-sans mb-2">{{ $t('questionText') }}:</label>
+                        <textarea v-model="questionForm.text"
+                            class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                            rows="3" :placeholder="$t('enterQuestion')"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-ink-700 font-sans mb-2">{{ $t('answers') }}:</label>
+                        <div class="space-y-2">
+                            <div v-for="(answer, index) in questionForm.answers" :key="index"
+                                class="flex items-center space-x-2">
+                                <input type="radio" :name="'correct-answer'" :value="index"
+                                    v-model="questionForm.correctAnswer" class="text-parchment-500">
+                                <input v-model="questionForm.answers[index]" type="text"
+                                    class="flex-1 p-2 border border-parchment-400 rounded bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                    :placeholder="$t('answer') + ' ' + (index + 1)">
+                            </div>
+                        </div>
+                        <p class="text-sm text-ink-600 mt-2">{{ $t('selectCorrectAnswer') }}</p>
+                    </div>
+
+                    <button @click="submitQuestion"
+                        class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        {{ $t('askQuestion') }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Answer Form (when it's player's turn to answer) -->
+            <div v-if="canAnswerQuestion"
+                class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+                <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('playerAsks', { name: otherPlayer?.name }) }}:
+                </h3>
+
+                <div class="bg-parchment-50 p-4 rounded-lg mb-4">
+                    <p class="text-ink-800 text-lg">{{ room?.currentQuestion?.text }}</p>
+                </div>
+
+                <div class="space-y-2 mb-4">
+                    <div v-for="(answer, index) in room?.currentQuestion?.answers" :key="index">
+                        <label
+                            class="flex items-center space-x-3 p-3 border border-parchment-300 rounded-lg hover:bg-parchment-50 cursor-pointer">
+                            <input type="radio" :value="index" v-model="selectedAnswer" class="text-parchment-500">
+                            <span class="text-ink-800">{{ answer }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button @click="submitAnswer"
+                    class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                    :disabled="selectedAnswer === -1">
+                    {{ $t('answer') }}
+                </button>
+            </div>
+
+            <!-- Waiting for other player -->
+            <div v-if="!canAskQuestion && !canAnswerQuestion"
+                class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 text-center">
+                <h3 class="text-xl font-bold text-ink-800 mb-2">{{ $t('waiting') }}...</h3>
+                <p class="text-ink-600 flex items-center justify-center">
+                    <span
+                        class="inline-block w-4 h-4 border-2 border-ink-600 border-t-transparent rounded-full animate-spin mr-2"></span>
+                    <template v-if="room?.currentQuestion">
+                        {{ $t('playerThinking', { name: otherPlayer?.name }) }}
+                    </template>
+                    <template v-else>
+                        {{ $t('playerPreparing', { name: otherPlayer?.name }) }}
+                    </template>
+                </p>
+            </div>
+        </div>
+
+        <!-- Finished State -->
+        <div v-if="gameState === 'finished'" class="text-center">
+            <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+                <h2 class="text-3xl font-bold text-ink-800 mb-4">🎉 {{ $t('gameFinished') }}!</h2>
+                <p class="text-xl text-ink-600 mb-6">
+                    {{ $t('winner') }}: <span class="font-bold">{{ room?.winner ? room.players.find(p => p.id ===
+                        room.winner)?.name : $t('tie') }}</span>
+                </p>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="text-center">
+                        <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
+                        <div class="text-3xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
+                        <div class="text-3xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
+                    </div>
+                </div>
+
+                <button @click="resetGameAfterFinish"
+                    class="bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                    {{ $t('newGame') }}
+                </button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <script>
@@ -347,7 +325,7 @@
             // Jeśli nie ma zapisanych preferencji, użyj języka przeglądarki
             const lang = navigator.language || navigator.userLanguage;
             const langCode = lang.split('-')[0];
-            const supportedLanguages = ['pl', 'en', 'es', 'de'];
+            const supportedLanguages = ['pl', 'en', 'es', 'de', 'szl', 'zh', 'ja', 'pt', 'ga', 'hi'];
             return supportedLanguages.includes(langCode) ? langCode : 'en';
         }
 
@@ -391,7 +369,22 @@
                 errorEmptyCode: 'Podaj kod gry',
                 errorEmptyQuestion: 'Podaj treść pytania',
                 errorInvalidCode: 'Podaj prawidłowy 4-cyfrowy kod gry',
-                errorConnection: 'Błąd połączenia z serwerem'
+                errorConnection: 'Błąd połączenia z serwerem',
+                // Nowe kody komunikatów:
+                gameCreated: 'Gra utworzona! Kod: {code}',
+                playerJoined: '{name} dołączył do gry! Gra rozpoczęta!',
+                answerCorrect: '{name} odpowiedział poprawnie i zdobywa punkt!',
+                answerIncorrect: '{name} odpowiedział niepoprawnie. Poprawna odpowiedź to: {correct}',
+                gameFinishedWinner: 'Gra zakończona! Wygrywa {name} z wynikiem {score} punktów!',
+                tieBreaker: 'Remis! Runda dogrywki {round}!',
+                nextRound: 'Koniec rundy {prev}. Rozpoczyna się runda {next}!',
+                gameFinished3Points: '{name} osiąga 3 punkty i wygrywa grę!',
+                errorJoinRoom: 'Nie znaleziono gry o podanym kodzie lub gra jest pełna',
+                errorSubmitAnswer: 'Nie możesz teraz odpowiedzieć na pytanie',
+                errorSubmitQuestion: 'Nie możesz teraz zadać pytania',
+                reconnectSuccess: 'Pomyślnie przywrócono połączenie!',
+                playerRejoined: '{name} wrócił do gry!',
+                errorReconnect: 'Nie można przywrócić gry. Gracz nie został znaleziony.'
             },
             en: {
                 subtitle: 'Game for two players',
@@ -431,7 +424,22 @@
                 errorEmptyCode: 'Enter game code',
                 errorEmptyQuestion: 'Enter question text',
                 errorInvalidCode: 'Enter a valid 4-digit game code',
-                errorConnection: 'Connection error with server'
+                errorConnection: 'Connection error with server',
+                // New message codes:
+                gameCreated: 'Game created! Code: {code}',
+                playerJoined: '{name} joined the game! Game started!',
+                answerCorrect: '{name} answered correctly and scores a point!',
+                answerIncorrect: '{name} answered incorrectly. Correct answer: {correct}',
+                gameFinishedWinner: 'Game finished! {name} wins with {score} points!',
+                tieBreaker: 'Tie! Sudden death round {round}!',
+                nextRound: 'End of round {prev}. Round {next} begins!',
+                gameFinished3Points: '{name} reaches 3 points and wins the game!',
+                errorJoinRoom: 'Game not found or already full',
+                errorSubmitAnswer: 'You cannot answer the question now',
+                errorSubmitQuestion: 'You cannot ask a question now',
+                reconnectSuccess: 'Successfully reconnected!',
+                playerRejoined: '{name} rejoined the game!',
+                errorReconnect: 'Cannot restore game. Player not found.'
             },
             es: {
                 subtitle: 'Juego para dos jugadores',
@@ -471,7 +479,22 @@
                 errorEmptyCode: 'Ingresa el código del juego',
                 errorEmptyQuestion: 'Ingresa el texto de la pregunta',
                 errorInvalidCode: 'Ingresa un código de juego válido de 4 dígitos',
-                errorConnection: 'Error de conexión con el servidor'
+                errorConnection: 'Error de conexión con el servidor',
+                // Nuevos códigos de mensajes:
+                gameCreated: '¡Juego creado! Código: {code}',
+                playerJoined: '¡{name} se unió al juego! ¡Juego iniciado!',
+                answerCorrect: '¡{name} respondió correctamente y gana un punto!',
+                answerIncorrect: '{name} respondió incorrectamente. Respuesta correcta: {correct}',
+                gameFinishedWinner: '¡Juego terminado! ¡{name} gana con {score} puntos!',
+                tieBreaker: '¡Empate! ¡Ronda de desempate {round}!',
+                nextRound: 'Fin de la ronda {prev}. ¡Comienza la ronda {next}!',
+                gameFinished3Points: '¡{name} alcanza 3 puntos y gana el juego!',
+                errorJoinRoom: 'No se encontró el juego o ya está lleno',
+                errorSubmitAnswer: 'No puedes responder la pregunta ahora',
+                errorSubmitQuestion: 'No puedes hacer una pregunta ahora',
+                reconnectSuccess: '¡Reconexión exitosa!',
+                playerRejoined: '¡{name} volvió al juego!',
+                errorReconnect: 'No se puede restaurar el juego. Jugador no encontrado.'
             },
             de: {
                 subtitle: 'Spiel für zwei Spieler',
@@ -511,7 +534,347 @@
                 errorEmptyCode: 'Gib den Spielcode ein',
                 errorEmptyQuestion: 'Gib den Fragetext ein',
                 errorInvalidCode: 'Gib einen gültigen 4-stelligen Spielcode ein',
-                errorConnection: 'Verbindungsfehler mit dem Server'
+                errorConnection: 'Verbindungsfehler mit dem Server',
+                // Neue Nachrichtencodes:
+                gameCreated: 'Spiel erstellt! Code: {code}',
+                playerJoined: '{name} ist dem Spiel beigetreten! Spiel gestartet!',
+                answerCorrect: '{name} hat richtig geantwortet und erhält einen Punkt!',
+                answerIncorrect: '{name} hat falsch geantwortet. Richtige Antwort: {correct}',
+                gameFinishedWinner: 'Spiel beendet! {name} gewinnt mit {score} Punkten!',
+                tieBreaker: 'Unentschieden! Entscheidungsrunde {round}!',
+                nextRound: 'Ende der Runde {prev}. Runde {next} beginnt!',
+                gameFinished3Points: '{name} erreicht 3 Punkte und gewinnt das Spiel!',
+                errorJoinRoom: 'Spiel nicht gefunden oder bereits voll',
+                errorSubmitAnswer: 'Du kannst jetzt keine Antwort geben',
+                errorSubmitQuestion: 'Du kannst jetzt keine Frage stellen',
+                reconnectSuccess: 'Erfolgreich wieder verbunden!',
+                playerRejoined: '{name} ist dem Spiel wieder beigetreten!',
+                errorReconnect: 'Spiel kann nicht wiederhergestellt werden. Spieler nicht gefunden.'
+            },
+            szl: {
+                subtitle: 'Gŏra dlo dwuch grŏczy',
+                createNewGame: 'Stwōrz nowō gŏra',
+                yourName: 'Twoje miano',
+                enterYourName: 'Wkludź swoje miano...',
+                createNewGameButton: 'Stwōrz nowō gŏra',
+                or: 'albo',
+                joinGame: 'Przisz do gŏry',
+                gameCode: 'Kŏd gŏry',
+                enterGameCode: 'Wkludź 4-cyfrōwy kŏd...',
+                joinGameButton: 'Przisz do gŏry',
+                waitingForPlayer: 'Czekanie na drugigo grŏcza...',
+                gameCodeLabel: 'Kŏd gŏry',
+                shareCode: 'Podziel sie tym kŏdym z drugim grŏczym',
+                backToMenu: 'Nazod do menu',
+                gameInProgress: 'Gŏra w toku',
+                round: 'Runda',
+                completedRounds: 'Ukończōne rundy',
+                yourTurnAsk: 'Twoja kolej - zadŏj pytanie!',
+                questionText: 'Treść pytanio',
+                enterQuestion: 'Wkludź swoje pytanie...',
+                answers: 'Odpowiedzi',
+                answer: 'Odpowiedź',
+                selectCorrectAnswer: 'Zaznacz richtiŏ odpowiedź',
+                askQuestion: 'Zadŏj pytanie',
+                playerAsks: '{name} pyto',
+                waiting: 'Czekanie',
+                playerThinking: '{name} myśli nad odpowiedziōm',
+                playerPreparing: '{name} szykuje pytanie',
+                gameFinished: 'Gŏra zakōńczōno!',
+                winner: 'Wygrŏny',
+                tie: 'Remis',
+                newGame: 'Nowŏ gŏra',
+                errorMinAnswers: 'Podŏj co nojmyń 2 odpowiedzi',
+                errorEmptyName: 'Podŏj swoje miano',
+                errorEmptyCode: 'Podŏj kŏd gŏry',
+                errorEmptyQuestion: 'Podŏj treść pytanio',
+                errorInvalidCode: 'Podŏj richtiŏ 4-cyfrōwy kŏd gŏry',
+                errorConnection: 'Feler połōnczenia z serwerym',
+                // Nowe kody komunikatów:
+                gameCreated: 'Gŏra stworzōno! Kŏd: {code}',
+                playerJoined: '{name} przisz do gŏry! Gŏra zaczynŏ sie!',
+                answerCorrect: '{name} podoł richtiŏ odpowiedź i dostowo punkt!',
+                answerIncorrect: '{name} podoł źle. Richtiŏ odpowiedź to: {correct}',
+                gameFinishedWinner: 'Gŏra zakōńczōno! Wygrŏwŏ {name} z wynikiym {score} punktōw!',
+                tieBreaker: 'Remis! Runda dogrywki {round}!',
+                nextRound: 'Kōniec rundy {prev}. Zaczynŏ sie runda {next}!',
+                gameFinished3Points: '{name} mo 3 punkty i wygrywo gŏra!',
+                errorJoinRoom: 'Niy znŏleziono gŏry abo je już pełno',
+                errorSubmitAnswer: 'Niy możesz teroz odpowiedzieć na pytanie',
+                errorSubmitQuestion: 'Niy możesz teroz zadŏć pytanio',
+                reconnectSuccess: 'Połōnczenie przwrōcone!',
+                playerRejoined: '{name} wrōcił do gŏry!',
+                errorReconnect: 'Niy idzie przwrōcić gŏry. Grŏcz niy znŏleziony.'
+            },
+            zh: {
+                subtitle: '双人游戏',
+                createNewGame: '创建新游戏',
+                yourName: '你的名字',
+                enterYourName: '输入你的名字...',
+                createNewGameButton: '创建新游戏',
+                or: '或者',
+                joinGame: '加入游戏',
+                gameCode: '游戏代码',
+                enterGameCode: '输入4位数字代码...',
+                joinGameButton: '加入游戏',
+                waitingForPlayer: '等待第二位玩家...',
+                gameCodeLabel: '游戏代码',
+                shareCode: '与第二位玩家分享此代码',
+                backToMenu: '返回菜单',
+                gameInProgress: '游戏进行中',
+                round: '回合',
+                completedRounds: '已完成回合',
+                yourTurnAsk: '轮到你了 - 提问！',
+                questionText: '问题内容',
+                enterQuestion: '输入你的问题...',
+                answers: '答案',
+                answer: '答案',
+                selectCorrectAnswer: '选择正确答案',
+                askQuestion: '提问',
+                playerAsks: '{name} 提问',
+                waiting: '等待中',
+                playerThinking: '{name} 正在思考答案',
+                playerPreparing: '{name} 正在准备问题',
+                gameFinished: '游戏结束！',
+                winner: '获胜者',
+                tie: '平局',
+                newGame: '新游戏',
+                errorMinAnswers: '请提供至少2个答案',
+                errorEmptyName: '请输入你的名字',
+                errorEmptyCode: '请输入游戏代码',
+                errorEmptyQuestion: '请输入问题内容',
+                errorInvalidCode: '请输入有效的4位数字游戏代码',
+                errorConnection: '服务器连接错误',
+                gameCreated: '游戏已创建！代码：{code}',
+                playerJoined: '{name} 加入了游戏！游戏开始！',
+                answerCorrect: '{name} 回答正确并获得1分！',
+                answerIncorrect: '{name} 回答错误。正确答案是：{correct}',
+                gameFinishedWinner: '游戏结束！{name} 以 {score} 分获胜！',
+                tieBreaker: '平局！第 {round} 轮决胜局！',
+                nextRound: '第 {prev} 轮结束。第 {next} 轮开始！',
+                gameFinished3Points: '{name} 获得3分并赢得游戏！',
+                errorJoinRoom: '找不到指定代码的游戏或游戏已满',
+                errorSubmitAnswer: '你现在不能回答问题',
+                errorSubmitQuestion: '你现在不能提问',
+                reconnectSuccess: '成功重新连接！',
+                playerRejoined: '{name} 回到了游戏！',
+                errorReconnect: '无法恢复游戏。未找到玩家。'
+            },
+            ja: {
+                subtitle: '2人用ゲーム',
+                createNewGame: '新しいゲームを作成',
+                yourName: 'あなたの名前',
+                enterYourName: '名前を入力...',
+                createNewGameButton: '新しいゲームを作成',
+                or: 'または',
+                joinGame: 'ゲームに参加',
+                gameCode: 'ゲームコード',
+                enterGameCode: '4桁のコードを入力...',
+                joinGameButton: 'ゲームに参加',
+                waitingForPlayer: '2人目のプレイヤーを待っています...',
+                gameCodeLabel: 'ゲームコード',
+                shareCode: 'このコードを2人目のプレイヤーと共有してください',
+                backToMenu: 'メニューに戻る',
+                gameInProgress: 'ゲーム進行中',
+                round: 'ラウンド',
+                completedRounds: '完了したラウンド',
+                yourTurnAsk: 'あなたの番です - 質問してください！',
+                questionText: '質問内容',
+                enterQuestion: '質問を入力...',
+                answers: '答え',
+                answer: '答え',
+                selectCorrectAnswer: '正しい答えを選択',
+                askQuestion: '質問する',
+                playerAsks: '{name}が質問しています',
+                waiting: '待機中',
+                playerThinking: '{name}が答えを考えています',
+                playerPreparing: '{name}が質問を準備しています',
+                gameFinished: 'ゲーム終了！',
+                winner: '勝者',
+                tie: '引き分け',
+                newGame: '新しいゲーム',
+                errorMinAnswers: '少なくとも2つの答えを入力してください',
+                errorEmptyName: '名前を入力してください',
+                errorEmptyCode: 'ゲームコードを入力してください',
+                errorEmptyQuestion: '質問内容を入力してください',
+                errorInvalidCode: '有効な4桁のゲームコードを入力してください',
+                errorConnection: 'サーバー接続エラー',
+                gameCreated: 'ゲームが作成されました！コード：{code}',
+                playerJoined: '{name}がゲームに参加しました！ゲーム開始！',
+                answerCorrect: '{name}が正しく答えて1ポイント獲得！',
+                answerIncorrect: '{name}が間違えました。正しい答えは：{correct}',
+                gameFinishedWinner: 'ゲーム終了！{name}が{score}ポイントで勝利！',
+                tieBreaker: '引き分け！第{round}ラウンドタイブレーク！',
+                nextRound: 'ラウンド{prev}終了。ラウンド{next}開始！',
+                gameFinished3Points: '{name}が3ポイント獲得し、ゲームに勝利！',
+                errorJoinRoom: '指定されたコードのゲームが見つからないか、満員です',
+                errorSubmitAnswer: '今は答えられません',
+                errorSubmitQuestion: '今は質問できません',
+                reconnectSuccess: '再接続に成功しました！',
+                playerRejoined: '{name}がゲームに戻ってきました！',
+                errorReconnect: 'ゲームを復元できません。プレイヤーが見つかりません。'
+            },
+            pt: {
+                subtitle: 'Jogo para dois jogadores',
+                createNewGame: 'Criar Novo Jogo',
+                yourName: 'Seu Nome',
+                enterYourName: 'Digite seu nome...',
+                createNewGameButton: 'Criar Novo Jogo',
+                or: 'ou',
+                joinGame: 'Entrar no Jogo',
+                gameCode: 'Código do Jogo',
+                enterGameCode: 'Digite o código de 4 dígitos...',
+                joinGameButton: 'Entrar no Jogo',
+                waitingForPlayer: 'Aguardando segundo jogador...',
+                gameCodeLabel: 'Código do Jogo',
+                shareCode: 'Compartilhe este código com o segundo jogador',
+                backToMenu: 'Voltar ao Menu',
+                gameInProgress: 'Jogo em Andamento',
+                round: 'Rodada',
+                completedRounds: 'Rodadas Completadas',
+                yourTurnAsk: 'Sua vez - faça uma pergunta!',
+                questionText: 'Texto da Pergunta',
+                enterQuestion: 'Digite sua pergunta...',
+                answers: 'Respostas',
+                answer: 'Resposta',
+                selectCorrectAnswer: 'Selecione a resposta correta',
+                askQuestion: 'Fazer Pergunta',
+                playerAsks: '{name} pergunta',
+                waiting: 'Aguardando',
+                playerThinking: '{name} está pensando na resposta',
+                playerPreparing: '{name} está preparando uma pergunta',
+                gameFinished: 'Jogo Terminado!',
+                winner: 'Vencedor',
+                tie: 'Empate',
+                newGame: 'Novo Jogo',
+                errorMinAnswers: 'Forneça pelo menos 2 respostas',
+                errorEmptyName: 'Digite seu nome',
+                errorEmptyCode: 'Digite o código do jogo',
+                errorEmptyQuestion: 'Digite o texto da pergunta',
+                errorInvalidCode: 'Digite um código de jogo válido de 4 dígitos',
+                errorConnection: 'Erro de conexão com o servidor',
+                gameCreated: 'Jogo criado! Código: {code}',
+                playerJoined: '{name} entrou no jogo! Jogo iniciado!',
+                answerCorrect: '{name} respondeu corretamente e ganhou 1 ponto!',
+                answerIncorrect: '{name} respondeu incorretamente. A resposta correta é: {correct}',
+                gameFinishedWinner: 'Jogo terminado! {name} venceu com {score} pontos!',
+                tieBreaker: 'Empate! Rodada de desempate {round}!',
+                nextRound: 'Fim da rodada {prev}. Iniciando rodada {next}!',
+                gameFinished3Points: '{name} alcançou 3 pontos e venceu o jogo!',
+                errorJoinRoom: 'Jogo não encontrado com o código fornecido ou jogo está cheio',
+                errorSubmitAnswer: 'Você não pode responder agora',
+                errorSubmitQuestion: 'Você não pode fazer uma pergunta agora',
+                reconnectSuccess: 'Reconectado com sucesso!',
+                playerRejoined: '{name} voltou ao jogo!',
+                errorReconnect: 'Não foi possível restaurar o jogo. Jogador não encontrado.'
+            },
+            ga: {
+                subtitle: 'Cluiche do dhaoine',
+                createNewGame: 'Cruthaigh Cluiche Nua',
+                yourName: 'D\'ainm',
+                enterYourName: 'Cuir isteach d\'ainm...',
+                createNewGameButton: 'Cruthaigh Cluiche Nua',
+                or: 'nó',
+                joinGame: 'Glac Páirt sa Chluiche',
+                gameCode: 'Cód an Chluiche',
+                enterGameCode: 'Cuir isteach cód 4 dhigit...',
+                joinGameButton: 'Glac Páirt',
+                waitingForPlayer: 'Ag fanacht leis an dara himreoir...',
+                gameCodeLabel: 'Cód an Chluiche',
+                shareCode: 'Roinn an cód seo leis an dara himreoir',
+                backToMenu: 'Ar ais go dtí an roghchlár',
+                gameInProgress: 'Cluiche ar siúl',
+                round: 'Timthriall',
+                completedRounds: 'Timthriallta Críochnaithe',
+                yourTurnAsk: 'Do sheal - cuir ceist!',
+                questionText: 'Téacs na Ceiste',
+                enterQuestion: 'Cuir isteach do cheist...',
+                answers: 'Freagraí',
+                answer: 'Freagra',
+                selectCorrectAnswer: 'Roghnaigh an freagra ceart',
+                askQuestion: 'Cuir Ceist',
+                playerAsks: 'cuireann {name} ceist',
+                waiting: 'Ag fanacht',
+                playerThinking: 'tá {name} ag smaoineamh ar an bhfreagra',
+                playerPreparing: 'tá {name} ag ullmhú ceiste',
+                gameFinished: 'Cluiche Críochnaithe!',
+                winner: 'Buaiteoir',
+                tie: 'Comhscór',
+                newGame: 'Cluiche Nua',
+                errorMinAnswers: 'Cuir ar a laghad 2 fhreagra ar fáil',
+                errorEmptyName: 'Cuir isteach d\'ainm',
+                errorEmptyCode: 'Cuir isteach cód an chluiche',
+                errorEmptyQuestion: 'Cuir isteach téacs na ceiste',
+                errorInvalidCode: 'Cuir isteach cód cluiche bailí 4 dhigit',
+                errorConnection: 'Earráid ceangail leis an bhfreastalaí',
+                gameCreated: 'Cluiche cruthaithe! Cód: {code}',
+                playerJoined: 'tháinig {name} isteach sa chluiche! Tosaíodh an cluiche!',
+                answerCorrect: 'd\'fhreagair {name} i gceart agus fuair sé 1 phointe!',
+                answerIncorrect: 'd\'fhreagair {name} go mícheart. Is é an freagra ceart: {correct}',
+                gameFinishedWinner: 'Cluiche críochnaithe! Bhuaigh {name} le {score} pointe!',
+                tieBreaker: 'Comhscór! Timthriall réitigh {round}!',
+                nextRound: 'Críoch an timthriall {prev}. Tosaíonn timthriall {next}!',
+                gameFinished3Points: 'shroich {name} 3 phointe agus bhuaigh an cluiche!',
+                errorJoinRoom: 'Níor aimsíodh cluiche leis an gcód seo nó tá an cluiche lán',
+                errorSubmitAnswer: 'Ní féidir leat freagra a thabhairt anois',
+                errorSubmitQuestion: 'Ní féidir leat ceist a chur anois',
+                reconnectSuccess: 'Athcheangail rathúil!',
+                playerRejoined: 'tháinig {name} ar ais sa chluiche!',
+                errorReconnect: 'Ní féidir an cluiche a athbhunú. Níor aimsíodh an t-imreoir.'
+            },
+            hi: {
+                subtitle: 'दो खिलाड़ियों के लिए खेल',
+                createNewGame: 'नया खेल बनाएं',
+                yourName: 'आपका नाम',
+                enterYourName: 'अपना नाम दर्ज करें...',
+                createNewGameButton: 'नया खेल बनाएं',
+                or: 'या',
+                joinGame: 'खेल में शामिल हों',
+                gameCode: 'खेल कोड',
+                enterGameCode: '4 अंकों का कोड दर्ज करें...',
+                joinGameButton: 'खेल में शामिल हों',
+                waitingForPlayer: 'दूसरे खिलाड़ी की प्रतीक्षा कर रहे हैं...',
+                gameCodeLabel: 'खेल कोड',
+                shareCode: 'इस कोड को दूसरे खिलाड़ी के साथ साझा करें',
+                backToMenu: 'मेनू पर वापस जाएं',
+                gameInProgress: 'खेल चल रहा है',
+                round: 'राउंड',
+                completedRounds: 'पूर्ण राउंड',
+                yourTurnAsk: 'आपकी बारी - प्रश्न पूछें!',
+                questionText: 'प्रश्न का पाठ',
+                enterQuestion: 'अपना प्रश्न दर्ज करें...',
+                answers: 'उत्तर',
+                answer: 'उत्तर',
+                selectCorrectAnswer: 'सही उत्तर चुनें',
+                askQuestion: 'प्रश्न पूछें',
+                playerAsks: '{name} प्रश्न पूछता है',
+                waiting: 'प्रतीक्षा कर रहे हैं',
+                playerThinking: '{name} उत्तर के बारे में सोच रहा है',
+                playerPreparing: '{name} प्रश्न तैयार कर रहा है',
+                gameFinished: 'खेल समाप्त!',
+                winner: 'विजेता',
+                tie: 'बराबरी',
+                newGame: 'नया खेल',
+                errorMinAnswers: 'कम से कम 2 उत्तर प्रदान करें',
+                errorEmptyName: 'अपना नाम दर्ज करें',
+                errorEmptyCode: 'खेल कोड दर्ज करें',
+                errorEmptyQuestion: 'प्रश्न का पाठ दर्ज करें',
+                errorInvalidCode: 'मान्य 4 अंकों का खेल कोड दर्ज करें',
+                errorConnection: 'सर्वर से कनेक्शन त्रुटि',
+                gameCreated: 'खेल बनाया गया! कोड: {code}',
+                playerJoined: '{name} खेल में शामिल हो गया! खेल शुरू हुआ!',
+                answerCorrect: '{name} ने सही उत्तर दिया और 1 अंक प्राप्त किया!',
+                answerIncorrect: '{name} ने गलत उत्तर दिया। सही उत्तर है: {correct}',
+                gameFinishedWinner: 'खेल समाप्त! {name} ने {score} अंकों से जीत हासिल की!',
+                tieBreaker: 'बराबरी! टाईब्रेकर राउंड {round}!',
+                nextRound: 'राउंड {prev} समाप्त। राउंड {next} शुरू हो रहा है!',
+                gameFinished3Points: '{name} ने 3 अंक प्राप्त किए और खेल जीता!',
+                errorJoinRoom: 'दिए गए कोड का खेल नहीं मिला या खेल पूर्ण है',
+                errorSubmitAnswer: 'आप अभी उत्तर नहीं दे सकते',
+                errorSubmitQuestion: 'आप अभी प्रश्न नहीं पूछ सकते',
+                reconnectSuccess: 'सफलतापूर्वक पुनः कनेक्ट हुआ!',
+                playerRejoined: '{name} वापस खेल में आ गया!',
+                errorReconnect: 'खेल को पुनर्स्थापित नहीं किया जा सकता। खिलाड़ी नहीं मिला।'
             }
         };
 
@@ -560,7 +923,7 @@
 
                 const isMyTurn = computed(() => {
                     return room.value && currentPlayer.value &&
-                           room.value.currentPlayerTurn === currentPlayer.value.id;
+                        room.value.currentPlayerTurn === currentPlayer.value.id;
                 });
 
                 const otherPlayer = computed(() => {
@@ -656,7 +1019,7 @@
                         // Only show disconnection error if we're not intentionally resetting
                         if (gameState.value !== 'menu') {
                             connectionState.value = 'disconnected';
-                            error.value = 'Połączenie z serwerem zostało przerwane';
+                            error.value = 'Connection to server was interrupted';
                         }
                     };
 
@@ -665,7 +1028,7 @@
                         // Only show connection error if we're not intentionally resetting
                         if (gameState.value !== 'menu') {
                             connectionState.value = 'disconnected';
-                            error.value = 'Błąd połączenia z serwerem';
+                            error.value = 'Connection error with server';
                         }
                     };
                 }
@@ -682,7 +1045,11 @@
                         case 'gameUpdate':
                             console.log('Game update received:', data.data);
                             room.value = data.data.room;
-                            message.value = data.data.message || '';
+                            if (data.data.code) {
+                                message.value = i18n.global.t(data.data.code, data.data.params || {});
+                            } else {
+                                message.value = data.data.message || '';
+                            }
 
                             if (room.value && currentPlayerName.value) {
                                 currentPlayer.value = room.value.players.find(p => p.name === currentPlayerName.value);
@@ -712,7 +1079,11 @@
                             console.log('Rejoin successful:', data.data);
                             room.value = data.data.room;
                             currentPlayer.value = data.data.player;
-                            message.value = data.data.message || 'Pomyślnie przywrócono połączenie!';
+                            if (data.data.code) {
+                                message.value = i18n.global.t(data.data.code, data.data.params || {});
+                            } else {
+                                message.value = data.data.message || 'Successfully restored connection!';
+                            }
 
                             if (room.value) {
                                 if (room.value.gameState === 'waiting') {
@@ -726,15 +1097,23 @@
                             break;
 
                         case 'rejoinFailed':
-                            console.log('Rejoin failed:', data.data.message);
-                            error.value = data.data.message;
+                            console.log('Rejoin failed:', data.data);
+                            if (data.data.code) {
+                                error.value = i18n.global.t(data.data.code, data.data.params || {});
+                            } else {
+                                error.value = data.data.message;
+                            }
                             clearGameState(); // Clear invalid state
                             gameState.value = 'menu';
                             break;
 
                         case 'error':
-                            console.error('Server error:', data.data.message);
-                            error.value = data.data.message;
+                            console.error('Server error:', data.data);
+                            if (data.data.code) {
+                                error.value = i18n.global.t(data.data.code, data.data.params || {});
+                            } else {
+                                error.value = data.data.message;
+                            }
                             break;
 
                         case 'playerDisconnected':
@@ -825,12 +1204,12 @@
 
                 function submitAnswer() {
                     if (selectedAnswer.value === -1) {
-                        error.value = 'Wybierz odpowiedź';
+                        error.value = 'Select an answer';
                         return;
                     }
-                    
+
                     error.value = '';
-                    
+
                     socket.value.send(JSON.stringify({
                         type: 'answer',
                         data: {
@@ -838,7 +1217,7 @@
                             selectedAnswer: selectedAnswer.value
                         }
                     }));
-                    
+
                     selectedAnswer.value = -1;
                 }
 
@@ -899,7 +1278,7 @@
                                 currentPlayerName.value = state.currentPlayerName;
                                 gameState.value = 'reconnecting';
                                 connectionState.value = 'connecting';
-                                error.value = 'Przywracanie połączenia...';
+                                error.value = 'Restoring connection...';
 
                                 // Attempt to reconnect
                                 setTimeout(() => {
@@ -934,7 +1313,7 @@
 
                     function handleOffline() {
                         console.log('Network offline');
-                        error.value = 'Brak połączenia internetowego';
+                        error.value = 'No internet connection';
                         connectionState.value = 'disconnected';
                     }
 
@@ -1000,4 +1379,5 @@
         app.mount('#app');
     </script>
 </body>
+
 </html>
