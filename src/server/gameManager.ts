@@ -95,7 +95,7 @@ export class GameManager {
       return null;
     }
 
-    // Check if it's player's turn and no question is pending
+    // Check if it is the player's turn and there is no question pending
     if (room.currentPlayerTurn !== playerId || room.currentQuestion) {
       return null;
     }
@@ -128,7 +128,7 @@ export class GameManager {
       return null;
     }
 
-    // Check if it's the right player answering (not the one who asked)
+    // Check if this is the correct player answering (not the one who asked)
     if (room.currentQuestion.askedBy === playerId || room.currentQuestion.id !== questionId) {
       return null;
     }
@@ -138,7 +138,7 @@ export class GameManager {
     let messageParams: Record<string, any> = {};
 
     if (isCorrect) {
-      // Award point to answering player
+      // Award a point to the player who answered
       const answeringPlayer = room.players.find(p => p.id === playerId);
       if (answeringPlayer) {
         answeringPlayer.score++;
@@ -160,18 +160,18 @@ export class GameManager {
     // Mark round as completed for the answering player
     room.roundsCompleted[playerId] = (room.roundsCompleted[playerId] || 0) + 1;
 
-    // Clear current question
+    // Clear the current question
     room.currentQuestion = null;
 
-    // Check if both players completed the current round
+    // Check if both players have completed the current round
     const allPlayersCompletedRound = room.players.every(player =>
       (room.roundsCompleted[player.id] || 0) >= room.currentRound
     );
 
     if (allPlayersCompletedRound) {
-      // Move to next round or end game
+      // Move to the next round or end the game
       if (room.currentRound >= room.maxRounds) {
-        // Game finished - determine winner
+        // Game finished - determine the winner
         const maxScore = Math.max(...room.players.map(p => p.score));
         const winners = room.players.filter(p => p.score === maxScore);
 
@@ -198,7 +198,7 @@ export class GameManager {
     // Switch turn to the other player (the one who answered)
     room.currentPlayerTurn = playerId;
 
-    // Check for immediate win condition (first to 3 points)
+    // Check for immediate win condition (first player to score 3 points)
     const winningPlayer = room.players.find(p => p.score >= 3);
     if (winningPlayer && room.gameState !== 'finished') {
       // But check if the other player had equal chances
@@ -234,7 +234,7 @@ export class GameManager {
       player.connected = false;
     }
 
-    // Only end the game if both players are disconnected for more than 5 minutes
+    // Only end the game if both players have been disconnected for more than 5 minutes
     // For now, just mark as disconnected but keep the game running
     // This allows immediate reconnection
 
@@ -259,7 +259,7 @@ export class GameManager {
       return null;
     }
 
-    // Mark player as connected again
+    // Mark the player as connected again
     player.connected = true;
 
     this.rooms.set(roomId, room);

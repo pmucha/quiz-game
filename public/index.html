@@ -7,7 +7,7 @@
     <title>Quiz Multiplayer</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/vue-i18n@9/dist/vue-i18n.global.prod.js"></script>
-    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -142,7 +142,7 @@
                         <div>
                             <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
                             <input v-model="playerNameJoin" type="text"
-                                class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                class="oponent-name w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
                                 :placeholder="$t('enterYourName')" maxlength="20">
                         </div>
 
@@ -316,22 +316,22 @@
         const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
         const { createI18n } = VueI18n;
 
-        // Funkcja do wykrywania języka przeglądarki
+        // Function to detect browser language
         function getBrowserLanguage() {
-            // Najpierw sprawdź zapisane preferencje
+            // First check saved preferences
             const savedLanguage = localStorage.getItem('preferredLanguage');
             if (savedLanguage) {
                 return savedLanguage;
             }
 
-            // Jeśli nie ma zapisanych preferencji, użyj języka przeglądarki
+            // If no saved preferences, use browser language
             const lang = navigator.language || navigator.userLanguage;
             const langCode = lang.split('-')[0];
             const supportedLanguages = ['pl', 'en', 'es', 'de', 'szl', 'zh', 'ja', 'pt', 'ga', 'hi'];
             return supportedLanguages.includes(langCode) ? langCode : 'en';
         }
 
-        // Konfiguracja tłumaczeń
+        // Translation configuration
         const messages = {
             pl: {
                 subtitle: 'Gra dla dwóch graczy',
@@ -1264,16 +1264,15 @@
                 onMounted(() => {
                     console.log('Component mounted, checking for saved game state...');
 
-                    // Check URL for game code first
-                    const path = window.location.pathname;
-                    const pathParts = path.split('/').filter(part => part);
-                    if (pathParts.length === 1 && pathParts[0].match(/^\d{4}$/)) {
-                        const urlGameCode = pathParts[0];
-                        console.log('Game code found in URL:', urlGameCode);
-                        gameCode.value = urlGameCode;
+                    // Check URL query parameter 'q' for game code
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const queryGameCode = urlParams.get('q');
+                    if (queryGameCode && queryGameCode.match(/^\d{4}$/)) {
+                        console.log('Game code found in URL query parameter q:', queryGameCode);
+                        gameCode.value = queryGameCode;
                         // Focus on the name input field for joining
                         setTimeout(() => {
-                            const nameInput = document.querySelector('input[placeholder*="name"]');
+                            const nameInput = document.querySelector('.oponent-name');
                             if (nameInput) nameInput.focus();
                         }, 100);
                     }
@@ -1285,10 +1284,8 @@
                     if (savedGameState) {
                         try {
                             const state = JSON.parse(savedGameState);
-                            console.log('Parsed state:', state);
 
                             if (state.room && state.currentPlayer) {
-                                console.log('Restoring game:', state.room.code, 'ID:', state.room.id);
                                 room.value = state.room;
                                 currentPlayer.value = state.currentPlayer;
                                 currentPlayerName.value = state.currentPlayerName;
@@ -1300,11 +1297,11 @@
                                 setTimeout(() => {
                                     console.log('Connecting WebSocket...');
                                     connectWebSocket();
-                                }, 500);
+                                }, 100);
                             }
                         } catch (e) {
-                            console.error('Failed to restore game state:', e);
-                            localStorage.removeItem('quizGameState');
+                            console.error('Failed to parse saved game state:', e);
+                            clearGameState();
                         }
                     }
 
