@@ -85,18 +85,18 @@
             </div>
         </div>
 
-        <header class="text-center mb-8">
+        <header class="text-center mb-8 transition-all duration-300 ease-in-out" :class="{ 'scale-[0.75] -translate-y-12': gameState !== 'menu' }">
             <h1 class="text-4xl font-bold text-ink-800 mb-2">📚 Quiz Multiplayer</h1>
-            <p class="text-ink-600 text-lg">{{ $t('subtitle') }}</p>
+            <p v-if="gameState === 'menu'" class="text-ink-600 text-lg transition-opacity duration-300">{{ $t('subtitle') }}</p>
         </header>
 
         <!-- Error Message -->
-        <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
             {{ error }}
         </div>
 
         <!-- Success Message -->
-        <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
             {{ message }}
         </div>
 
@@ -146,9 +146,9 @@
 
                         <div>
                             <label class="block text-ink-700 font-sans mb-2">{{ $t('gameCode') }}:</label>
-                            <input v-model="gameCode" type="text"
+                            <input v-model="gameCode" type="number" step="1" min="1111" max="9999"
                                 class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
-                                :placeholder="$t('enterGameCode')" maxlength="4" @keyup.enter="joinGame">
+                                :placeholder="$t('enterGameCode')" @keyup.enter="joinGame">
                         </div>
                     </div>
 
@@ -161,7 +161,7 @@
         </div>
 
         <!-- Waiting State -->
-        <div v-if="gameState === 'waiting'" class="text-center">
+        <div v-if="gameState === 'waiting'" class="max-w-md mx-auto text-center">
             <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
                 <h2 class="text-2xl font-bold text-ink-800 mb-4">{{ $t('waitingForPlayer') }}</h2>
                 <p class="text-ink-600 mb-4">{{ $t('gameCodeLabel') }}: <span class="font-bold text-2xl">{{ room?.code
@@ -1147,7 +1147,7 @@
                         return;
                     }
 
-                    if (!gameCode.value.trim() || gameCode.value.trim().length !== 4) {
+                    if (gameCode.value < 1111 || gameCode.value > 9999) {
                         error.value = i18n.global.t('errorInvalidCode');
                         return;
                     }
@@ -1161,7 +1161,7 @@
                             type: 'join',
                             data: {
                                 playerName: currentPlayerName.value,
-                                gameCode: gameCode.value.trim().toUpperCase()
+                                gameCode: String(gameCode.value)
                             }
                         }));
                     };
@@ -1261,6 +1261,20 @@
 
                 onMounted(() => {
                     console.log('Component mounted, checking for saved game state...');
+
+                    // Check URL for game code first
+                    const path = window.location.pathname;
+                    const pathParts = path.split('/').filter(part => part);
+                    if (pathParts.length === 1 && pathParts[0].match(/^\d{4}$/)) {
+                        const urlGameCode = pathParts[0];
+                        console.log('Game code found in URL:', urlGameCode);
+                        gameCode.value = urlGameCode;
+                        // Focus on the name input field for joining
+                        setTimeout(() => {
+                            const nameInput = document.querySelector('input[placeholder*="name"]');
+                            if (nameInput) nameInput.focus();
+                        }, 100);
+                    }
 
                     // Auto-connect on page load if we have saved game state
                     const savedGameState = localStorage.getItem('quizGameState');

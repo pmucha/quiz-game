@@ -49,7 +49,17 @@ async function handler(req: Request): Promise<Response> {
       urlRoot: "",
     });
   }
-  
+
+  // Handle game code URLs like /1234 and /1234/
+  const gameCodeMatch = url.pathname.match(/^\/(\d{4})\/$/);
+  if (gameCodeMatch) {
+    return await serveDir(req, {
+      fsRoot: "public",
+      urlRoot: "",
+    });
+  }
+
+  // Serve other static files
   return await serveDir(req, {
     fsRoot: "public",
     urlRoot: "",
@@ -79,7 +89,7 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
       }
       case 'join': {
         const data = message.data as JoinGameData;
-        const result = await gameManager.joinRoom(data.gameCode, data.playerName);
+        const result = await gameManager.joinRoom(String(data.gameCode), data.playerName);
         if (result) {
           connection.roomId = result.room.id;
           connection.playerId = result.playerId;
