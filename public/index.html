@@ -391,7 +391,22 @@
                 </button>
             </div>
         </div>
-    </div>
+
+        <!-- Footer with privacy info and repo link - only shown in menu state -->
+        <div v-if="gameState === 'menu'" class="py-8 text-center space-y-3">
+          <div class="text-xs font-sans">
+            <a href="https://github.com/pmucha/quiz-game"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 underline transition-colors">
+              {{ $t('footerRepo') }}
+            </a>
+          </div>
+          <div class="text-xs font-sans text-amber-600 dark:text-amber-400 leading-relaxed max-w-sm mx-auto">
+            {{ $t('footerPrivacy') }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -547,7 +562,9 @@
                 errorSubmitQuestion: 'You cannot ask a question now',
                 reconnectSuccess: 'Successfully reconnected!',
                 playerRejoined: '{name} rejoined the game!',
-                errorReconnect: 'Cannot restore game. Player not found.'
+                errorReconnect: 'Cannot restore game. Player not found.',
+                footerRepo: 'Source code for this project is freely available on GitHub',
+                footerPrivacy: 'This project does not collect any personal data. Your name is temporarily stored on the server during the game and shared with your fellow player.'
             },
             es: {
                 subtitle: 'Juego para dos jugadores',
