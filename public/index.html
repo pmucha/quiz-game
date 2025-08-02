@@ -61,9 +61,28 @@
             background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f5e197' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             pointer-events: none;
         }
-        
+
         .text-shadow { text-shadow: 0 0 4px rgba(0, 0, 0, 0.2); }
     </style>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#b45309">
+</head>
+<body>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed:', error);
+            });
+        });
+    }
+</script>
 </head>
 
 <body class="book-page min-h-screen font-serif">

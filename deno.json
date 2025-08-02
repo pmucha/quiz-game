@@ -13,14 +13,8 @@
     "vue": "https://unpkg.com/vue@3.4.0/dist/vue.esm-browser.js"
   },
   "compilerOptions": {
-    "strict": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2022",
-      "deno.ns",
-      "deno.unstable"
-    ]
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "strict": true
   },
   "deploy": {
     "project": "6d7e510c-9c79-46b7-ae46-9bb706b6944a",
