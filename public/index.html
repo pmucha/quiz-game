@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -29,6 +30,23 @@
                             600: '#4a5568',
                             700: '#2d3748',
                             800: '#1a202c',
+                        },
+                        'dark-parchment': {
+                            50: '#2a2a2a',
+                            100: '#333333',
+                            200: '#404040',
+                            300: '#4d4d4d',
+                            400: '#5a5a5a',
+                            500: '#666666',
+                            600: '#737373',
+                            700: '#808080',
+                            800: '#8d8d8d',
+                            900: '#9a9a9a',
+                        },
+                        'dark-ink': {
+                            600: '#e2e8f0',
+                            700: '#f7fafc',
+                            800: '#ffffff',
                         }
                     },
                     fontFamily: {
@@ -46,9 +64,17 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
+        .dark .book-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
         .book-page {
             background: linear-gradient(135deg, #fefdf8 0%, #fdf9e7 100%);
             position: relative;
+        }
+
+        .dark .book-page {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
         }
 
         .book-page::before {
@@ -62,24 +88,25 @@
             pointer-events: none;
         }
 
-        .text-shadow { text-shadow: 0 0 4px rgba(0, 0, 0, 0.2); }
+        .text-shadow {
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+        }
     </style>
 
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#b45309">
 </head>
-<body>
 
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-                console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(error => {
-                console.log('Service Worker registration failed:', error);
-            });
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
         });
     }
 </script>
@@ -88,10 +115,11 @@
 <body class="book-page min-h-screen font-serif">
     <div id="app">
         <div class="container mx-auto px-4 py-8 max-w-4xl" :key="currentLocale">
-            <!-- Language Selector -->
-            <div class="absolute top-4 right-4">
+            <!-- Language Selector and Dark Mode Toggle -->
+            <div class="absolute top-4 right-4 flex items-center space-x-3">
+                <!-- Language Selector -->
                 <select :value="currentLocale" @change="changeLanguage($event.target.value)"
-                    class="text-xs bg-parchment-100 border border-parchment-300 rounded px-2 py-1 text-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500">
+                    class="text-xs bg-parchment-100 dark:bg-dark-parchment-100 border border-parchment-300 dark:border-dark-parchment-300 rounded px-2 py-1 text-ink-700 dark:text-dark-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500">
                     <option value="en">🇺🇸 English</option>
                     <option value="pl">🇵🇱 Polski</option>
                     <option value="es">🇪🇸 Español</option>
@@ -103,42 +131,56 @@
                     <option value="ga">🇮🇪 Gaeilge</option>
                     <option value="hi">🇮🇳 हिन्दी</option>
                 </select>
+
+                <!-- Dark Mode Toggle -->
+                <button @click="toggleDarkMode"
+                    class="text-xs bg-parchment-100 dark:bg-dark-parchment-100 border border-parchment-300 dark:border-dark-parchment-300 rounded px-2 py-1 text-ink-700 dark:text-dark-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500 hover:bg-parchment-200 dark:hover:bg-dark-parchment-200 transition-colors">
+                    {{ isDarkMode ? '☀️' : '🌙' }}
+                </button>
             </div>
         </div>
 
-        <header class="text-center mb-8 transition-all duration-300 ease-in-out" :class="{ 'scale-[0.75]': gameState !== 'menu' }">
-            <h1 class="text-4xl font-bold text-ink-800 mb-2">📚 Quiz Multiplayer</h1>
-            <p v-if="gameState === 'menu'" class="text-ink-600 text-lg transition-opacity duration-300">{{ $t('subtitle') }}</p>
+        <header class="text-center mb-8 transition-all duration-300 ease-in-out"
+            :class="{ 'scale-[0.75]': gameState !== 'menu' }">
+            <h1 class="text-4xl font-bold text-ink-800 dark:text-dark-ink-800 mb-2">📚 Quiz Multiplayer</h1>
+            <p v-if="gameState === 'menu'"
+                class="text-ink-600 dark:text-dark-ink-600 text-lg transition-opacity duration-300">{{ $t('subtitle') }}
+            </p>
         </header>
 
         <!-- Error Message -->
-        <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
+        <div v-if="error"
+            class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
             {{ error }}
         </div>
 
         <!-- Success Message -->
-        <div v-if="message" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
+        <div v-if="message"
+            class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
             {{ message }}
         </div>
 
         <!-- Menu State -->
         <div v-if="gameState === 'menu'" class="max-w-md mx-auto">
-            <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
+            <div
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
                 <!-- Create New Game Section -->
                 <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('createNewGame') }}</h2>
+                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center">{{
+                        $t('createNewGame') }}</h2>
 
                     <div class="space-y-4 mb-6">
                         <div>
-                            <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
+                            <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
+                                }}:</label>
                             <input v-model="playerNameCreate" type="text"
-                                class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
                                 :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="createGame">
                         </div>
                     </div>
 
                     <button @click="createGame"
-                        class="w-full bg-parchment-500 hover:bg-parchment-600 text-white text-shadow font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white text-shadow font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
                         🎲 {{ $t('createNewGameButton') }}
                     </button>
                 </div>
@@ -146,35 +188,40 @@
                 <!-- Divider -->
                 <div class="relative my-8">
                     <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-parchment-400"></div>
+                        <div class="w-full border-t border-parchment-400 dark:border-dark-parchment-400"></div>
                     </div>
                     <div class="relative flex justify-center text-sm">
-                        <span class="px-4 bg-parchment-100 text-ink-600 font-sans">{{ $t('or') }}</span>
+                        <span
+                            class="px-4 bg-parchment-100 dark:bg-dark-parchment-100 text-ink-600 dark:text-dark-ink-600 font-sans">{{
+                            $t('or') }}</span>
                     </div>
                 </div>
 
                 <!-- Join Game Section -->
                 <div>
-                    <h2 class="text-2xl font-bold text-ink-800 mb-6 text-center">{{ $t('joinGame') }}</h2>
+                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center">{{
+                        $t('joinGame') }}</h2>
 
                     <div class="space-y-4 mb-6">
                         <div>
-                            <label class="block text-ink-700 font-sans mb-2">{{ $t('yourName') }}:</label>
+                            <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
+                                }}:</label>
                             <input v-model="playerNameJoin" type="text"
-                                class="oponent-name w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                class="oponent-name w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
                                 :placeholder="$t('enterYourName')" maxlength="20">
                         </div>
 
                         <div>
-                            <label class="block text-ink-700 font-sans mb-2">{{ $t('gameCode') }}:</label>
+                            <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('gameCode')
+                                }}:</label>
                             <input v-model="gameCode" type="number" step="1" min="1111" max="9999"
-                                class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
                                 :placeholder="$t('enterGameCode')" @keyup.enter="joinGame">
                         </div>
                     </div>
 
                     <button @click="joinGame"
-                        class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
                         🚪 {{ $t('joinGameButton') }}
                     </button>
                 </div>
@@ -183,14 +230,17 @@
 
         <!-- Waiting State -->
         <div v-if="gameState === 'waiting'" class="max-w-md mx-auto text-center">
-            <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                <h2 class="text-2xl font-bold text-ink-800 mb-4">{{ $t('waitingForPlayer') }}</h2>
-                <p class="text-ink-600 mb-4">{{ $t('gameCodeLabel') }}: <span class="font-bold text-2xl">{{ room?.code
+            <div
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
+                <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-4">{{ $t('waitingForPlayer') }}
+                </h2>
+                <p class="text-ink-600 dark:text-dark-ink-600 mb-4">{{ $t('gameCodeLabel') }}: <span
+                        class="font-bold text-2xl">{{ room?.code
                         }}</span></p>
-                <p class="text-ink-600">{{ $t('shareCode') }}</p>
+                <p class="text-ink-600 dark:text-dark-ink-600">{{ $t('shareCode') }}</p>
                 <div class="mt-6">
                     <button @click="resetGame"
-                        class="bg-gray-500 hover:bg-gray-600 text-white font-sans font-bold py-2 px-4 rounded">
+                        class="bg-gray-500 dark:bg-gray-600 hover:bg-gray-600 dark:hover:bg-gray-700 text-white font-sans font-bold py-2 px-4 rounded">
                         {{ $t('backToMenu') }}
                     </button>
                 </div>
@@ -200,59 +250,66 @@
         <!-- Playing State -->
         <div v-if="gameState === 'playing'" class="space-y-6">
             <!-- Game Info -->
-            <div class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
+            <div
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-ink-800">{{ $t('gameInProgress') }}</h2>
-                    <div class="text-ink-600 font-sans">
+                    <h2 class="text-xl font-bold text-ink-800 dark:text-dark-ink-800">{{ $t('gameInProgress') }}</h2>
+                    <div class="text-ink-600 dark:text-dark-ink-600 font-sans">
                         {{ $t('round') }} {{ room?.currentRound || 1 }}/{{ room?.maxRounds || 3 }}
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="text-center">
-                        <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
-                        <div class="text-2xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
-                        <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{
+                        <div class="font-bold text-ink-800 dark:text-dark-ink-800">{{ room?.players[0]?.name }}</div>
+                        <div class="text-2xl font-bold text-parchment-600 dark:text-dark-parchment-600">{{
+                            room?.players[0]?.score || 0 }}</div>
+                        <div class="text-sm text-ink-600 dark:text-dark-ink-600">{{ $t('completedRounds') }}: {{
                             room?.roundsCompleted?.[room?.players[0]?.id] || 0 }}</div>
                     </div>
                     <div class="text-center">
-                        <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
-                        <div class="text-2xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
-                        <div class="text-sm text-ink-600">{{ $t('completedRounds') }}: {{
+                        <div class="font-bold text-ink-800 dark:text-dark-ink-800">{{ room?.players[1]?.name }}</div>
+                        <div class="text-2xl font-bold text-parchment-600 dark:text-dark-parchment-600">{{
+                            room?.players[1]?.score || 0 }}</div>
+                        <div class="text-sm text-ink-600 dark:text-dark-ink-600">{{ $t('completedRounds') }}: {{
                             room?.roundsCompleted?.[room?.players[1]?.id] || 0 }}</div>
                     </div>
                 </div>
             </div>
 
             <!-- Question Form (when it's player's turn to ask) -->
-            <div v-if="canAskQuestion" class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('yourTurnAsk') }}</h3>
+            <div v-if="canAskQuestion"
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
+                <h3 class="text-xl font-bold text-ink-800 dark:text-dark-ink-800 mb-4">{{ $t('yourTurnAsk') }}</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-ink-700 font-sans mb-2">{{ $t('questionText') }}:</label>
+                        <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('questionText')
+                            }}:</label>
                         <textarea v-model="questionForm.text"
-                            class="w-full p-3 border border-parchment-400 rounded-lg bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                            class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
                             rows="3" :placeholder="$t('enterQuestion')"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-ink-700 font-sans mb-2">{{ $t('answers') }}:</label>
+                        <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('answers')
+                            }}:</label>
                         <div class="space-y-2">
                             <div v-for="(answer, index) in questionForm.answers" :key="index"
                                 class="flex items-center space-x-2">
                                 <input type="radio" :name="'correct-answer'" :value="index"
-                                    v-model="questionForm.correctAnswer" class="text-parchment-500">
+                                    v-model="questionForm.correctAnswer"
+                                    class="text-parchment-500 dark:text-dark-parchment-500">
                                 <input v-model="questionForm.answers[index]" type="text"
-                                    class="flex-1 p-2 border border-parchment-400 rounded bg-parchment-50 text-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500"
+                                    class="flex-1 p-2 border border-parchment-400 dark:border-dark-parchment-400 rounded bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
                                     :placeholder="$t('answer') + ' ' + (index + 1)">
                             </div>
                         </div>
-                        <p class="text-sm text-ink-600 mt-2">{{ $t('selectCorrectAnswer') }}</p>
+                        <p class="text-sm text-ink-600 dark:text-dark-ink-600 mt-2">{{ $t('selectCorrectAnswer') }}</p>
                     </div>
 
                     <button @click="submitQuestion"
-                        class="w-full bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
                         {{ $t('askQuestion') }}
                     </button>
                 </div>
@@ -260,26 +317,28 @@
 
             <!-- Answer Form (when it's player's turn to answer) -->
             <div v-if="canAnswerQuestion"
-                class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300">
-                <h3 class="text-xl font-bold text-ink-800 mb-4">{{ $t('playerAsks', { name: otherPlayer?.name }) }}:
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
+                <h3 class="text-xl font-bold text-ink-800 dark:text-dark-ink-800 mb-4">{{ $t('playerAsks', { name:
+                    otherPlayer?.name }) }}:
                 </h3>
 
-                <div class="bg-parchment-50 p-4 rounded-lg mb-4">
-                    <p class="text-ink-800 text-lg">{{ room?.currentQuestion?.text }}</p>
+                <div class="bg-parchment-50 dark:bg-dark-parchment-50 p-4 rounded-lg mb-4">
+                    <p class="text-ink-800 dark:text-dark-ink-800 text-lg">{{ room?.currentQuestion?.text }}</p>
                 </div>
 
                 <div class="space-y-2 mb-4">
                     <div v-for="(answer, index) in room?.currentQuestion?.answers" :key="index">
                         <label
-                            class="flex items-center space-x-3 p-3 border border-parchment-300 rounded-lg hover:bg-parchment-50 cursor-pointer">
-                            <input type="radio" :value="index" v-model="selectedAnswer" class="text-parchment-500">
-                            <span class="text-ink-800">{{ answer }}</span>
+                            class="flex items-center space-x-3 p-3 border border-parchment-300 dark:border-dark-parchment-300 rounded-lg hover:bg-parchment-50 dark:hover:bg-dark-parchment-50 cursor-pointer">
+                            <input type="radio" :value="index" v-model="selectedAnswer"
+                                class="text-parchment-500 dark:text-dark-parchment-500">
+                            <span class="text-ink-800 dark:text-dark-ink-800">{{ answer }}</span>
                         </label>
                     </div>
                 </div>
 
                 <button @click="submitAnswer"
-                    class="w-full bg-ink-600 hover:bg-ink-700 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                    class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                     :disabled="selectedAnswer === -1">
                     {{ $t('answer') }}
                 </button>
@@ -287,11 +346,11 @@
 
             <!-- Waiting for other player -->
             <div v-if="!canAskQuestion && !canAnswerQuestion"
-                class="bg-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 text-center">
-                <h3 class="text-xl font-bold text-ink-800 mb-2">{{ $t('waiting') }}...</h3>
-                <p class="text-ink-600 flex items-center justify-center">
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-6 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300 text-center">
+                <h3 class="text-xl font-bold text-ink-800 dark:text-dark-ink-800 mb-2">{{ $t('waiting') }}...</h3>
+                <p class="text-ink-600 dark:text-dark-ink-600 flex items-center justify-center">
                     <span
-                        class="inline-block w-4 h-4 border-2 border-ink-600 border-t-transparent rounded-full animate-spin mr-2"></span>
+                        class="inline-block w-4 h-4 border-2 border-ink-600 dark:border-dark-ink-600 border-t-transparent rounded-full animate-spin mr-2"></span>
                     <template v-if="room?.currentQuestion">
                         {{ $t('playerThinking', { name: otherPlayer?.name }) }}
                     </template>
@@ -304,26 +363,30 @@
 
         <!-- Finished State -->
         <div v-if="gameState === 'finished'" class="text-center">
-            <div class="bg-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300">
-                <h2 class="text-3xl font-bold text-ink-800 mb-4">🎉 {{ $t('gameFinished') }}!</h2>
-                <p class="text-xl text-ink-600 mb-6">
+            <div
+                class="bg-parchment-100 dark:bg-dark-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
+                <h2 class="text-3xl font-bold text-ink-800 dark:text-dark-ink-800 mb-4">🎉 {{ $t('gameFinished') }}!
+                </h2>
+                <p class="text-xl text-ink-600 dark:text-dark-ink-600 mb-6">
                     {{ $t('winner') }}: <span class="font-bold">{{ room?.winner ? room.players.find(p => p.id ===
                         room.winner)?.name : $t('tie') }}</span>
                 </p>
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="text-center">
-                        <div class="font-bold text-ink-800">{{ room?.players[0]?.name }}</div>
-                        <div class="text-3xl font-bold text-parchment-600">{{ room?.players[0]?.score || 0 }}</div>
+                        <div class="font-bold text-ink-800 dark:text-dark-ink-800">{{ room?.players[0]?.name }}</div>
+                        <div class="text-3xl font-bold text-parchment-600 dark:text-dark-parchment-600">{{
+                            room?.players[0]?.score || 0 }}</div>
                     </div>
                     <div class="text-center">
-                        <div class="font-bold text-ink-800">{{ room?.players[1]?.name }}</div>
-                        <div class="text-3xl font-bold text-parchment-600">{{ room?.players[1]?.score || 0 }}</div>
+                        <div class="font-bold text-ink-800 dark:text-dark-ink-800">{{ room?.players[1]?.name }}</div>
+                        <div class="text-3xl font-bold text-parchment-600 dark:text-dark-parchment-600">{{
+                            room?.players[1]?.score || 0 }}</div>
                     </div>
                 </div>
 
                 <button @click="resetGameAfterFinish"
-                    class="bg-parchment-500 hover:bg-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                    class="bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
                     {{ $t('newGame') }}
                 </button>
             </div>
@@ -349,6 +412,29 @@
             const supportedLanguages = ['pl', 'en', 'es', 'de', 'szl', 'zh', 'ja', 'pt', 'ga', 'hi'];
             return supportedLanguages.includes(langCode) ? langCode : 'en';
         }
+
+        // Function to detect and manage dark mode
+        function getInitialDarkMode() {
+            const savedTheme = localStorage.getItem('preferredTheme');
+            if (savedTheme) {
+                return savedTheme === 'dark';
+            }
+            // Use system preference if no saved preference
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
+        function setDarkMode(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('preferredTheme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('preferredTheme', 'light');
+            }
+        }
+
+        // Initialize dark mode on page load
+        setDarkMode(getInitialDarkMode());
 
         // Translation configuration
         const messages = {
@@ -923,6 +1009,14 @@
                 // Obsługa języka
                 const currentLocale = ref(getBrowserLanguage());
 
+                // Obsługa trybu ciemnego
+                const isDarkMode = ref(getInitialDarkMode());
+
+                const toggleDarkMode = () => {
+                    isDarkMode.value = !isDarkMode.value;
+                    setDarkMode(isDarkMode.value);
+                };
+
                 const changeLanguage = (locale) => {
                     i18n.global.locale = locale;
                     currentLocale.value = locale;
@@ -1396,7 +1490,9 @@
                     isConnected,
                     isReconnecting,
                     currentLocale,
+                    isDarkMode,
                     changeLanguage,
+                    toggleDarkMode,
                     createGame,
                     joinGame,
                     submitQuestion,
