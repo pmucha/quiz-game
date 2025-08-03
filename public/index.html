@@ -88,6 +88,14 @@
             pointer-events: none;
         }
 
+        /* Stylowanie przycisków w stanie disabled */
+        button:disabled, .button:disabled {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(0.3);
+            box-shadow: none !important;
+        }
+
         .text-shadow {
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
         }
@@ -180,7 +188,8 @@
                     </div>
 
                     <button @click="createGame"
-                        class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white text-shadow font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white text-shadow font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        :disabled="!canCreateGame">
                         🎲 {{ $t('createNewGameButton') }}
                     </button>
                 </div>
@@ -214,14 +223,15 @@
                         <div>
                             <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('gameCode')
                                 }}:</label>
-                            <input v-model="gameCode" type="number" step="1" min="1111" max="9999"
+                            <input v-model="gameCode" type="text" maxlength="4" pattern="\\d*"
                                 class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
                                 :placeholder="$t('enterGameCode')" @keyup.enter="joinGame">
                         </div>
                     </div>
 
                     <button @click="joinGame"
-                        class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        :disabled="!canJoinGame">
                         🚪 {{ $t('joinGameButton') }}
                     </button>
                 </div>
@@ -309,7 +319,8 @@
                     </div>
 
                     <button @click="submitQuestion"
-                        class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors">
+                        class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
+                        :disabled="!canSubmitQuestion">
                         {{ $t('askQuestion') }}
                     </button>
                 </div>
@@ -339,7 +350,7 @@
 
                 <button @click="submitAnswer"
                     class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                    :disabled="selectedAnswer === -1">
+                    :disabled="!canSubmitAnswer">
                     {{ $t('answer') }}
                 </button>
             </div>
@@ -1095,6 +1106,28 @@
                     return !isMyTurn.value && room.value?.currentQuestion;
                 });
 
+                // --- WALIDACJA PRZYCISKÓW ---
+                const canCreateGame = computed(() => {
+                    return playerNameCreate.value.trim().length > 0;
+                });
+                const canJoinGame = computed(() => {
+                    return playerNameJoin.value.trim().length > 0 &&
+                        /^\d{4}$/.test(gameCode.value.trim());
+                });
+                const canSubmitQuestion = computed(() => {
+                    const textOk = questionForm.value.text.trim().length > 0;
+                    // Co najmniej 2 niepuste odpowiedzi
+                    const answers = questionForm.value.answers.map(a => a.trim()).filter(a => a.length > 0);
+                    const minAnswersOk = answers.length >= 2;
+                    // Poprawna odpowiedź wskazuje na niepuste pole
+                    const correctIdx = questionForm.value.correctAnswer;
+                    const correctOk = questionForm.value.answers[correctIdx] && questionForm.value.answers[correctIdx].trim().length > 0;
+                    return textOk && minAnswersOk && correctOk;
+                });
+                const canSubmitAnswer = computed(() => {
+                    return selectedAnswer.value !== -1;
+                });
+
                 // Game state persistence
                 function saveGameState() {
                     if (room.value && currentPlayer.value) {
@@ -1527,9 +1560,13 @@
                     changeLanguage,
                     toggleDarkMode,
                     createGame,
+                    canCreateGame,
                     joinGame,
+                    canJoinGame,
                     submitQuestion,
+                    canSubmitQuestion,
                     submitAnswer,
+                    canSubmitAnswer,
                     resetGame
                 };
             }
