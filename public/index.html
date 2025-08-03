@@ -102,7 +102,8 @@
     </style>
 
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#b45309">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5e9c8">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#222222">
 </head>
 
 <script>
@@ -1575,6 +1576,33 @@
         // Używanie i18n plugin
         app.use(i18n);
         app.mount('#app');
+    </script>
+    <script>
+      // Kolory dla motywów
+      const lightColor = '#f5e9c8';
+      const darkColor = '#222222';
+
+      function setThemeColorMeta(color) {
+        let meta = document.querySelector('meta[name="theme-color"]:not([media])');
+        if (!meta) {
+          meta = document.createElement('meta');
+          meta.name = 'theme-color';
+          document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', color);
+      }
+
+      function updateThemeColor() {
+        const isDark = document.documentElement.classList.contains('dark');
+        setThemeColorMeta(isDark ? darkColor : lightColor);
+      }
+
+      // Ustaw na starcie
+      updateThemeColor();
+
+      // Obserwuj zmiany klasy na <html>
+      const observer = new MutationObserver(updateThemeColor);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     </script>
 </body>
 
