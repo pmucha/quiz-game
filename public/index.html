@@ -60,6 +60,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
+        html {
+            background-color: #f5e9c8;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            html {
+                background-color: #222222;
+            }
+        }
+
         .book-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
@@ -548,7 +558,9 @@
                 errorSubmitQuestion: 'Nie możesz teraz zadać pytania',
                 reconnectSuccess: 'Pomyślnie przywrócono połączenie!',
                 playerRejoined: '{name} wrócił do gry!',
-                errorReconnect: 'Nie można przywrócić gry. Gracz nie został znaleziony.'
+                errorReconnect: 'Nie można przywrócić gry. Gracz nie został znaleziony.',
+                footerRepo: 'Kod źródłowy tego projektu jest dostępny bezpłatnie na GitHubie',
+                footerPrivacy: 'Ten projekt nie zbiera żadnych danych osobowych. Twoje imię jest tymczasowo przechowywane na serwerze podczas gry i udostępniane drugiemu graczowi.'
             },
             ar: {
                 subtitle: 'لعبة للاعبين اثنين',
