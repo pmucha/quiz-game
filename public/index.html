@@ -60,12 +60,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
-        html {
+        html, body {
             background-color: #f5e9c8;
         }
 
         @media (prefers-color-scheme: dark) {
-            html {
+            html, body {
                 background-color: #222222;
             }
         }
@@ -81,6 +81,7 @@
         .book-page {
             background: linear-gradient(135deg, #fefdf8 0%, #fdf9e7 100%);
             position: relative;
+            min-height: 100vh;
         }
 
         .dark .book-page {
@@ -98,7 +99,7 @@
             pointer-events: none;
         }
 
-        /* Stylowanie przycisków w stanie disabled */
+        /* Button disabled styling */
         button:disabled,
         .button:disabled {
             opacity: 0.5 !important;
@@ -110,9 +111,53 @@
         .text-shadow {
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
         }
+
+        /* Transition for simple fades */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 220ms ease, transform 220ms ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        /* Toasts */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            min-width: 200px;
+            max-width: 90vw;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: #0b1220;
+            box-shadow: 0 6px 18px rgba(10,10,10,0.12);
+            font-family: Inter, system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .toast.success { background: #d1fae5; color: #064e3b; }
+        .toast.error { background: #fee2e2; color: #7f1d1d; }
+        .toast .close { margin-left: 0.75rem; cursor: pointer; opacity: 0.8 }
+
+        /* Accessibility helper */
+        .sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+
     </style>
 
     <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5e9c8">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#222222">
 </head>
@@ -130,39 +175,25 @@
         });
     }
 </script>
-</head>
 
 <body class="book-page min-h-screen font-serif">
     <div id="app">
+        <div aria-live="polite" class="sr-only" id="statusRegion"></div>
         <div class="container mx-auto px-4 py-8 max-w-4xl" :key="currentLocale">
             <!-- Language Selector and Dark Mode Toggle -->
-            <div class="absolute top-4 right-4 flex items-center space-x-3">
+            <div class="absolute top-4 right-4 flex items-center space-x-3" role="region" aria-label="Language and theme controls">
                 <!-- Language Selector -->
-                <select :value="currentLocale" @change="changeLanguage($event.target.value)"
+                <select ref="languageSelect" :value="currentLocale" @change="changeLanguage($event.target.value)"
+                    :aria-label="$t('language')"
                     class="text-xs bg-parchment-100 dark:bg-dark-parchment-100 border border-parchment-300 dark:border-dark-parchment-300 rounded px-2 py-1 text-ink-700 dark:text-dark-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500">
                     <option value="en">🇺🇸 English</option>
                     <option value="pl">🇵🇱 Polski</option>
-                    <option value="pl-korpo">💼 Polski (Korpo)</option>
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="szl">🏴 Ślōnski</option>
-                    <option value="zh">🇨🇳 中文</option>
-                    <option value="ja">🇯🇵 日本語</option>
-                    <option value="pt">🇧🇷 Português</option>
-                    <option value="ga">🇮🇪 Gaeilge</option>
-                    <option value="hi">🇮🇳 हिन्दी</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="it">🇮🇹 Italiano</option>
-                    <option value="tr">🇹🇷 Türkçe</option>
-                    <option value="ar">🇸🇦 العربية</option>
-                    <option value="bn">🇧🇩 বাংলা</option>
-                    <option value="id">🇮🇩 Bahasa Indonesia</option>
-                    <option value="pa">🇵🇰 ਪੰਜਾਬੀ</option>
-                    <option value="sw">🇰🇪 Kiswahili</option>
-                    <option value="vi">🇻🇳 Tiếng Việt</option>
-                    <option value="ko">🇰🇷 한국어</option>
-                    <option value="csb">🇵🇱 Kaszëbsczi</option>
-                    <option value="pl-goral">🏔️ Gwara góralsko</option>
+                    <option value="cs">🇨🇿 Čeština</option>
+                    <option value="hu">🇭🇺 Magyar</option>
+                    <option value="bg">🇧🇬 Български</option>
+                    <option value="hr">🇭🇷 Hrvatski</option>
+                    <option value="el">🇬🇷 Ελληνικά</option>
+                    <option value="la">🏛️ Latin</option>
                     <option value="cs">🇨🇿 Čeština</option>
                     <option value="hu">🇭🇺 Magyar</option>
                     <option value="bg">🇧🇬 Български</option>
@@ -184,6 +215,7 @@
 
                 <!-- Dark Mode Toggle -->
                 <button @click="toggleDarkMode"
+                    :aria-label="$t('toggleDarkMode')"
                     class="text-xs bg-parchment-100 dark:bg-dark-parchment-100 border border-parchment-300 dark:border-dark-parchment-300 rounded px-2 py-1 text-ink-700 dark:text-dark-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500 hover:bg-parchment-200 dark:hover:bg-dark-parchment-200 transition-colors">
                     {{ isDarkMode ? '☀️' : '🌙' }}
                 </button>
@@ -192,52 +224,78 @@
 
         <header class="text-center mb-8 transition-all duration-300 ease-in-out"
             :class="{ 'scale-[0.75]': gameState !== 'menu' }">
-            <h1 class="text-4xl font-bold text-ink-800 dark:text-dark-ink-800 mb-2">📚 Quiz Multiplayer</h1>
+            <div class="flex items-center justify-center space-x-3">
+                <!-- Connection status indicator: shape + color for accessibility (not color-only) -->
+                <div class="inline-flex items-center justify-center w-5 h-5"
+                    :title="isConnected ? $t('connected') : (isReconnecting ? $t('restoringConnection') : $t('noConnection'))"
+                    aria-live="polite" role="status" :aria-label="isConnected ? $t('connected') : (isReconnecting ? $t('restoringConnection') : $t('noConnection'))">
+                    <!-- Connected: check mark inside circle -->
+                    <svg v-if="isConnected" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-green-600" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" fill="currentColor" />
+                        <polyline points="7.5 12.5 10.5 15.5 16.5 9.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <!-- Reconnecting: small clock/loader symbol (distinct shape) -->
+                    <svg v-else-if="isReconnecting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-yellow-500" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" fill="currentColor" />
+                        <path d="M12 7v6l4 2" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <!-- Disconnected: cross mark inside circle -->
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-red-600" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" fill="currentColor" />
+                        <line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
+                        <line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <h1 class="text-4xl font-bold text-ink-800 dark:text-dark-ink-800 mb-2">📚 Quiz Multiplayer</h1>
+            </div>
             <p v-if="gameState === 'menu'"
-                class="text-ink-600 dark:text-dark-ink-600 text-lg transition-opacity duration-300">{{ $t('subtitle') }}
+                class="text-ink-600 dark:text-dark-ink-600 text-lg transition-opacity duration-300" role="heading" aria-level="2">{{ $t('subtitle') }}
             </p>
         </header>
 
-        <!-- Error Message -->
-        <div v-if="error"
-            class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
-            {{ error }}
-        </div>
-
-        <!-- Success Message -->
-        <div v-if="message"
-            class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded mb-4 max-w-lg mx-auto">
-            {{ message }}
+        <!-- Toast container -->
+        <div class="toast-container" aria-live="polite" aria-atomic="true">
+            <transition-group name="fade" tag="div">
+                <div v-for="toast in toasts" :key="toast.id" :class="['toast', toast.type]" role="alert" aria-live="assertive">
+                    <div class="flex items-center space-x-3">
+                        <div v-if="toast.type === 'success'">✅</div>
+                        <div v-else>⚠️</div>
+                        <div class="text-sm">{{ toast.text }}</div>
+                    </div>
+                    <div class="close" @click="dismissToast(toast.id)" role="button" :aria-label="$t('closeToast')">✖</div>
+                </div>
+            </transition-group>
         </div>
 
         <!-- Menu State -->
-        <div v-if="gameState === 'menu'" class="max-w-md mx-auto">
+        <div v-if="gameState === 'menu'" class="max-w-md mx-auto" role="main">
             <div
                 class="bg-parchment-100 dark:bg-dark-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
                 <!-- Create New Game Section -->
                 <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center">{{
+                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center" role="heading" aria-level="2">{{
                         $t('createNewGame') }}</h2>
 
                     <div class="space-y-4 mb-6">
                         <div>
-                            <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
+                            <label for="createName" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
                                 }}:</label>
-                            <input v-model="playerNameCreate" type="text"
+                            <input id="createName" v-model="playerNameCreate" ref="createName" type="text"
                                 class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
-                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="createGame">
+                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="createGame" aria-required="true" />
                         </div>
                     </div>
 
                     <button @click="createGame"
                         class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white text-shadow font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                        :disabled="!canCreateGame">
+                        :disabled="!canCreateGame || busyCreate" aria-busy="busyCreate">
+                        <span v-if="busyCreate" class="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" aria-label="Loading"></span>
                         🎲 {{ $t('createNewGameButton') }}
                     </button>
                 </div>
 
                 <!-- Divider -->
-                <div class="relative my-8">
+                <div class="relative my-8" role="presentation" aria-hidden="true">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-parchment-400 dark:border-dark-parchment-400"></div>
                     </div>
@@ -250,30 +308,31 @@
 
                 <!-- Join Game Section -->
                 <div>
-                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center">{{
+                    <h2 id="joinGameHeading" class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center" role="heading" aria-level="2">{{
                         $t('joinGame') }}</h2>
 
-                    <div class="space-y-4 mb-6">
+                    <div class="space-y-4 mb-6" role="group" :aria-labelledby="'joinGameHeading'">
                         <div>
-                            <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
+                            <label for="joinName" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
                                 }}:</label>
-                            <input v-model="playerNameJoin" type="text"
+                            <input id="joinName" v-model="playerNameJoin" ref="joinName" type="text"
                                 class="oponent-name w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
-                                :placeholder="$t('enterYourName')" maxlength="20">
+                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="onJoinNameEnter" aria-required="true" />
                         </div>
 
                         <div>
-                            <label class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('gameCode')
+                            <label for="joinCode" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('gameCode')
                                 }}:</label>
-                            <input v-model="gameCode" type="text" maxlength="4" inputmode="numeric" pattern="\\d*"
+                            <input id="joinCode" v-model="gameCode" ref="joinCode" type="text" maxlength="4" inputmode="numeric" pattern="\\d*"
                                 class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
-                                :placeholder="$t('enterGameCode')" @keyup.enter="joinGame">
+                                :placeholder="$t('enterGameCode')" @keyup.enter="joinGame" aria-required="true" />
                         </div>
                     </div>
 
                     <button @click="joinGame"
                         class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
-                        :disabled="!canJoinGame">
+                        :disabled="!canJoinGame || busyJoin" aria-busy="busyJoin">
+                        <span v-if="busyJoin" class="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" aria-label="Loading"></span>
                         🚪 {{ $t('joinGameButton') }}
                     </button>
                 </div>
@@ -543,7 +602,7 @@
                 errorEmptyQuestion: 'Podaj treść pytania',
                 errorInvalidCode: 'Podaj prawidłowy 4-cyfrowy kod gry',
                 errorConnection: 'Błąd połączenia z serwerem',
-                // Nowe kody komunikatów:
+                // New message codes:
                 gameCreated: 'Gra utworzona! Kod: {code}',
                 playerJoined: '{name} dołączył do gry! Gra rozpoczęta!',
                 answerCorrect: '{name} odpowiedział poprawnie i zdobywa punkt!',
@@ -560,7 +619,19 @@
                 playerRejoined: '{name} wrócił do gry!',
                 errorReconnect: 'Nie można przywrócić gry. Gracz nie został znaleziony.',
                 footerRepo: 'Kod źródłowy tego projektu jest dostępny bezpłatnie na GitHubie',
-                footerPrivacy: 'Ten projekt nie zbiera żadnych danych osobowych. Twoje imię jest tymczasowo przechowywane na serwerze podczas gry i udostępniane drugiemu graczowi.'
+                footerPrivacy: 'Ten projekt nie zbiera żadnych danych osobowych. Twoje imię jest tymczasowo przechowywane na serwerze podczas gry i udostępniane drugiemu graczowi.',
+                // UI / client-side i18n keys
+                selectAnswer: 'Wybierz odpowiedź',
+                restoringConnection: 'Przywracanie połączenia...',
+                noInternet: 'Brak połączenia z internetem',
+                copyCode: 'Kopiuj kod',
+                share: 'Udostępnij',
+                language: 'Język',
+                toggleDarkMode: 'Przełącz tryb ciemny',
+                connected: 'Połączono',
+                noConnection: 'Brak połączenia',
+                errorRoomNotFound: 'Nie znaleziono pokoju',
+                errorPlayerNotFound: 'Nie znaleziono gracza'
             },
             ar: {
                 subtitle: 'لعبة للاعبين اثنين',
@@ -787,6 +858,18 @@
                 reconnectSuccess: 'Successfully reconnected!',
                 playerRejoined: '{name} rejoined the game!',
                 errorReconnect: 'Cannot restore game. Player not found.',
+                // UI / client-side i18n keys
+                selectAnswer: 'Select an answer',
+                restoringConnection: 'Restoring connection...',
+                noInternet: 'No internet connection',
+                copyCode: 'Copy code',
+                share: 'Share',
+                language: 'Language',
+                toggleDarkMode: 'Toggle dark mode',
+                connected: 'Connected',
+                noConnection: 'No connection',
+                errorRoomNotFound: 'Room not found',
+                errorPlayerNotFound: 'Player not found',
                 footerRepo: 'Source code for this project is freely available on GitHub',
                 footerPrivacy: 'This project does not collect any personal data. Your name is temporarily stored on the server during the game and shared with your fellow player.'
             },
@@ -1284,7 +1367,7 @@
                 errorEmptyQuestion: 'Podŏj treść pytanio',
                 errorInvalidCode: 'Podŏj richtiŏ 4-cyfrōwy kŏd gŏry',
                 errorConnection: 'Feler połōnczenia z serwerym',
-                // Nowe kody komunikatów:
+                // New message codes:
                 gameCreated: 'Gŏra stworzōno! Kŏd: {code}',
                 playerJoined: '{name} przisz do gŏry! Gŏra zaczynŏ sie!',
                 answerCorrect: '{name} podoł richtiŏ odpowiedź i dostowo punkt!',
@@ -2760,6 +2843,21 @@
                 errorEmptyQuestion: "ENTER QUERY",
                 errorInvalidCode: "ENTER VALID 4-DIGIT CODE",
                 errorConnection: "ERROR: CONNECTION FAILURE",
+                errorJoinRoom: "ERROR: GAME NOT FOUND OR FULL",
+                errorSubmitAnswer: "CANNOT SUBMIT RESPONSE NOW",
+                errorSubmitQuestion: "CANNOT SUBMIT QUERY NOW",
+                errorReconnect: "ERROR: GAME RECOVERY FAILED. UNIT NOT FOUND.",
+                errorRoomNotFound: "ROOM NOT FOUND",
+                errorPlayerNotFound: "PLAYER NOT FOUND",
+                selectAnswer: "SELECT ANSWER",
+                restoringConnection: "RESTORING CONNECTION...",
+                noInternet: "NO INTERNET CONNECTION",
+                connected: "CONNECTED",
+                noConnection: "NO CONNECTION",
+                copyCode: "COPY CODE",
+                share: "SHARE",
+                language: "LANGUAGE",
+                toggleDarkMode: "TOGGLE DARK MODE",
                 gameCreated: "GAME CREATED. CODE: {code}",
                 playerJoined: "{name} CONNECTED. GAME STARTING.",
                 answerCorrect: "{name} CORRECT. POINT AWARDED.",
@@ -2769,18 +2867,15 @@
                 tieBreaker: "TIE DETECTED. TIEBREAKER ROUND {round}.",
                 nextRound: "ROUND {prev} COMPLETE. ROUND {next} INITIATED.",
                 gameFinished3Points: "{name} ACHIEVED 3 POINTS. GAME WON.",
-                errorJoinRoom: "ERROR: GAME NOT FOUND OR FULL",
-                errorSubmitAnswer: "CANNOT SUBMIT RESPONSE NOW",
-                errorSubmitQuestion: "CANNOT SUBMIT QUERY NOW",
                 reconnectSuccess: "RECONNECTED: SUCCESS",
                 playerRejoined: "{name} RECONNECTED TO GAME",
-                errorReconnect: "ERROR: GAME RECOVERY FAILED. UNIT NOT FOUND.",
+
                 footerRepo: "PROJECT CODE: GITHUB",
-                footerPrivacy: "NO PERSONAL DATA COLLECTED. DESIGNATION SHARED ONLY DURING GAME SESSION."
+                footerPrivacy: "NO PERSONAL DATA COLLECTED. DESIGNATION SHARED ONLY DURING GAME SESSION.",
             }
         }
 
-        // Tworzenie instancji i18n
+        // Create i18n instance
         const i18n = createI18n({
             locale: getBrowserLanguage(),
             fallbackLocale: 'en',
@@ -2789,6 +2884,7 @@
 
         const app = createApp({
             setup() {
+                // reactive state
                 const gameState = ref('menu');
                 const playerNameCreate = ref('');
                 const playerNameJoin = ref('');
@@ -2801,534 +2897,269 @@
                 const error = ref('');
                 const connectionState = ref('disconnected');
 
-                // Obsługa języka
                 const currentLocale = ref(getBrowserLanguage());
-
-                // Obsługa trybu ciemnego
                 const isDarkMode = ref(getInitialDarkMode());
 
-                const toggleDarkMode = () => {
+                // Toggle dark mode helper
+                function toggleDarkMode() {
                     isDarkMode.value = !isDarkMode.value;
                     setDarkMode(isDarkMode.value);
-                };
+                    try { localStorage.setItem('preferredTheme', isDarkMode.value ? 'dark' : 'light'); } catch (e) { /* ignore */ }
+                }
 
-                const changeLanguage = (locale) => {
+                // Change language helper
+                function changeLanguage(locale) {
+                    if (!locale) return;
                     i18n.global.locale = locale;
                     currentLocale.value = locale;
                     document.documentElement.lang = locale;
-                    localStorage.setItem('preferredLanguage', locale);
-                };
+                    try { localStorage.setItem('preferredLanguage', locale); } catch (e) { /* ignore */ }
+                }
 
-                // Inicjalizacja - ustaw język na podstawie getBrowserLanguage
-                const initialLocale = getBrowserLanguage();
-                changeLanguage(initialLocale);
-
-                const questionForm = ref({
-                    text: '',
-                    answers: ['', '', '', '', ''],
-                    correctAnswer: 0
-                });
-
+                const questionForm = ref({ text: '', answers: ['', '', '', '', ''], correctAnswer: 0 });
                 const selectedAnswer = ref(-1);
 
-                const isMyTurn = computed(() => {
-                    return room.value && currentPlayer.value &&
-                        room.value.currentPlayerTurn === currentPlayer.value.id;
-                });
+                // UI helpers: toasts
+                const toasts = ref([]);
+                let nextToastId = 1;
+                function showToast(text, type = 'success', ttl = 4500) {
+                    const id = nextToastId++;
+                    toasts.value.push({ id, text, type });
+                    setTimeout(() => {
+                        const idx = toasts.value.findIndex(t => t.id === id);
+                        if (idx !== -1) toasts.value.splice(idx, 1);
+                    }, ttl);
+                }
+                function dismissToast(id) {
+                    const idx = toasts.value.findIndex(t => t.id === id);
+                    if (idx !== -1) toasts.value.splice(idx, 1);
+                }
 
-                const otherPlayer = computed(() => {
-                    if (!room.value || !currentPlayer.value) return null;
-                    return room.value.players.find(p => p.id !== currentPlayer.value.id);
-                });
-
-                const isConnected = computed(() => {
-                    return connectionState.value === 'connected';
-                });
-
-                const isReconnecting = computed(() => {
-                    return connectionState.value === 'reconnecting';
-                });
-
-                const canAskQuestion = computed(() => {
-                    return isMyTurn.value && !room.value?.currentQuestion;
-                });
-
-                const canAnswerQuestion = computed(() => {
-                    return !isMyTurn.value && room.value?.currentQuestion;
-                });
-
-                // --- WALIDACJA PRZYCISKÓW ---
-                const canCreateGame = computed(() => {
-                    return playerNameCreate.value.trim().length > 0;
-                });
-                const canJoinGame = computed(() => {
-                    return playerNameJoin.value.trim().length > 0 &&
-                        /^\d{4}$/.test(gameCode.value.trim());
-                });
+                // computed helpers
+                const isMyTurn = computed(() => room.value && currentPlayer.value && room.value.currentPlayerTurn === currentPlayer.value.id);
+                const otherPlayer = computed(() => room.value && currentPlayer.value ? room.value.players.find(p => p.id !== currentPlayer.value.id) : null);
+                const isConnected = computed(() => connectionState.value === 'connected');
+                const isReconnecting = computed(() => connectionState.value === 'connecting' || connectionState.value === 'reconnecting');
+                const canAskQuestion = computed(() => isMyTurn.value && !room.value?.currentQuestion);
+                const canAnswerQuestion = computed(() => !isMyTurn.value && !!room.value?.currentQuestion);
+                const canCreateGame = computed(() => playerNameCreate.value.trim().length > 0);
+                const canJoinGame = computed(() => playerNameJoin.value.trim().length > 0 && /^\d{4}$/.test(String(gameCode.value).trim()));
                 const canSubmitQuestion = computed(() => {
                     const textOk = questionForm.value.text.trim().length > 0;
-                    // Co najmniej 2 niepuste odpowiedzi
                     const answers = questionForm.value.answers.map(a => a.trim()).filter(a => a.length > 0);
                     const minAnswersOk = answers.length >= 2;
-                    // Poprawna odpowiedź wskazuje na niepuste pole
                     const correctIdx = questionForm.value.correctAnswer;
                     const correctOk = questionForm.value.answers[correctIdx] && questionForm.value.answers[correctIdx].trim().length > 0;
                     return textOk && minAnswersOk && correctOk;
                 });
-                const canSubmitAnswer = computed(() => {
-                    return selectedAnswer.value !== -1;
-                });
+                const canSubmitAnswer = computed(() => selectedAnswer.value !== -1);
 
-                // Game state persistence
+                // persistence
                 function saveGameState() {
                     if (room.value && currentPlayer.value) {
-                        const state = {
-                            room: room.value,
-                            currentPlayer: currentPlayer.value,
-                            currentPlayerName: currentPlayerName.value,
-                            timestamp: Date.now()
-                        };
+                        const state = { room: room.value, currentPlayer: currentPlayer.value, currentPlayerName: currentPlayerName.value, timestamp: Date.now() };
                         localStorage.setItem('quizGameState', JSON.stringify(state));
                     }
                 }
-
-                function clearGameState() {
-                    localStorage.removeItem('quizGameState');
-                }
-
+                function clearGameState() { localStorage.removeItem('quizGameState'); }
                 function loadGameState() {
                     const saved = localStorage.getItem('quizGameState');
-                    if (saved) {
-                        try {
-                            const state = JSON.parse(saved);
-                            // Check if state is not too old (24 hours)
-                            if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) {
-                                return state;
-                            } else {
-                                clearGameState();
-                            }
-                        } catch (e) {
-                            console.error('Failed to parse saved game state:', e);
-                            clearGameState();
-                        }
-                    }
+                    if (!saved) return null;
+                    try {
+                        const state = JSON.parse(saved);
+                        if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) return state;
+                        clearGameState();
+                    } catch (e) { clearGameState(); }
                     return null;
                 }
 
+                // pending action queue
+                const pendingAction = ref(null);
+
                 function connectWebSocket() {
+                    if (socket.value && socket.value.readyState === WebSocket.OPEN) return;
                     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                     const wsUrl = `${protocol}//${window.location.host}`;
-
                     socket.value = new WebSocket(wsUrl);
 
-                    socket.value.onopen = () => {
-                        console.log('Connected to server');
+                    socket.value.addEventListener('open', () => {
                         connectionState.value = 'connected';
                         error.value = '';
-
-                        // Check if we need to rejoin a game
-                        const savedState = loadGameState();
-                        if (savedState && savedState.room && savedState.currentPlayer) {
-                            console.log('Attempting to rejoin game:', savedState.room.code, 'with ID:', savedState.room.id);
-                            socket.value.send(JSON.stringify({
-                                type: 'rejoin',
-                                data: {
-                                    roomId: savedState.room.id,  // Use actual room ID, not code
-                                    playerId: savedState.currentPlayer.id,
-                                    playerName: savedState.currentPlayer.name
-                                }
-                            }));
+                        // send pending action if any
+                        if (pendingAction.value && socket.value.readyState === WebSocket.OPEN) {
+                            socket.value.send(JSON.stringify(pendingAction.value));
+                            pendingAction.value = null;
                         }
-                    };
+                    });
 
-                    socket.value.onmessage = (event) => {
-                        const data = JSON.parse(event.data);
-                        handleServerMessage(data);
-                    };
+                    socket.value.addEventListener('message', (ev) => {
+                        const data = JSON.parse(ev.data);
+                        // handle incoming messages centrally
+                        if (data.type === 'gameUpdate' || data.type === 'playerDisconnected' || data.type === 'rejoinSuccess') saveGameState();
+                        switch (data.type) {
+                            case 'gameUpdate':
+                                room.value = data.data.room;
+                                if (data.data.code) showToast(i18n.global.t(data.data.code, data.data.params || {}), 'success');
+                                break;
+                            case 'rejoinSuccess':
+                                room.value = data.data.room; currentPlayer.value = data.data.player; showToast(i18n.global.t(data.data.code || 'reconnectSuccess', data.data.params || {}), 'success');
+                                break;
+                            case 'rejoinFailed':
+                                error.value = data.data.code ? i18n.global.t(data.data.code, data.data.params || {}) : data.data.message; clearGameState(); gameState.value = 'menu';
+                                break;
+                            case 'error':
+                                error.value = data.data.code ? i18n.global.t(data.data.code, data.data.params || {}) : data.data.message; showToast(error.value, 'error');
+                                break;
+                            case 'playerDisconnected':
+                                room.value = data.data.room; showToast(i18n.global.t(data.data.code || 'playerDisconnected', data.data.params || {}) || data.data.message || '', 'error');
+                                break;
+                        }
 
-                    socket.value.onclose = () => {
-                        console.log('Disconnected from server');
-                        // Only show disconnection error if we're not intentionally resetting
+                        if (room.value && currentPlayerName.value) {
+                            currentPlayer.value = room.value.players.find(p => p.name === currentPlayerName.value) || null;
+                            if (room.value.gameState === 'waiting') gameState.value = 'waiting';
+                            else if (room.value.gameState === 'playing') gameState.value = 'playing';
+                            else if (room.value.gameState === 'finished') { gameState.value = 'finished'; clearGameState(); }
+                        }
+                    });
+
+                    socket.value.addEventListener('close', () => {
+                        connectionState.value = 'disconnected';
                         if (gameState.value !== 'menu') {
-                            connectionState.value = 'disconnected';
-                            error.value = 'Connection to server was interrupted';
+                            error.value = i18n.global.t('noInternet');
                         }
-                    };
+                    });
 
-                    socket.value.onerror = (err) => {
-                        console.error('WebSocket error:', err);
-                        // Only show connection error if we're not intentionally resetting
-                        if (gameState.value !== 'menu') {
-                            connectionState.value = 'disconnected';
-                            error.value = 'Connection error with server';
-                        }
-                    };
+                    socket.value.addEventListener('error', (err) => {
+                        console.error('WebSocket error', err);
+                        connectionState.value = 'disconnected';
+                        if (gameState.value !== 'menu') error.value = i18n.global.t('errorConnection');
+                    });
                 }
 
-                function handleServerMessage(data) {
-                    console.log('Received message:', data.type, data);
+                // Create / Join using pendingAction queue
+                const busyCreate = ref(false);
+                const busyJoin = ref(false);
 
-                    // Save game state on any game update
-                    if (data.type === 'gameUpdate' || data.type === 'playerDisconnected' || data.type === 'rejoinSuccess') {
-                        saveGameState();
-                    }
-
-                    switch (data.type) {
-                        case 'gameUpdate':
-                            console.log('Game update received:', data.data);
-                            room.value = data.data.room;
-                            if (data.data.code) {
-                                message.value = i18n.global.t(data.data.code, data.data.params || {});
-                            } else {
-                                message.value = data.data.message || '';
-                            }
-
-                            if (room.value && currentPlayerName.value) {
-                                currentPlayer.value = room.value.players.find(p => p.name === currentPlayerName.value);
-                                console.log('Current player identified:', currentPlayer.value);
-                                console.log('Room current turn:', room.value.currentPlayerTurn);
-                                console.log('Current question:', room.value.currentQuestion);
-                                console.log('isMyTurn:', isMyTurn.value);
-                                console.log('canAskQuestion:', canAskQuestion.value);
-                                console.log('canAnswerQuestion:', canAnswerQuestion.value);
-                            }
-
-                            if (room.value) {
-                                if (room.value.gameState === 'waiting') {
-                                    gameState.value = 'waiting';
-                                } else if (room.value.gameState === 'playing') {
-                                    gameState.value = 'playing';
-                                } else if (room.value.gameState === 'finished') {
-                                    gameState.value = 'finished';
-                                    // Clear saved state when game finishes
-                                    clearGameState();
-                                    // Let players restart on demand using the button
-                                }
-                            }
-                            break;
-
-                        case 'rejoinSuccess':
-                            console.log('Rejoin successful:', data.data);
-                            room.value = data.data.room;
-                            currentPlayer.value = data.data.player;
-                            if (data.data.code) {
-                                message.value = i18n.global.t(data.data.code, data.data.params || {});
-                            } else {
-                                message.value = data.data.message || 'Successfully restored connection!';
-                            }
-
-                            if (room.value) {
-                                if (room.value.gameState === 'waiting') {
-                                    gameState.value = 'waiting';
-                                } else if (room.value.gameState === 'playing') {
-                                    gameState.value = 'playing';
-                                } else if (room.value.gameState === 'finished') {
-                                    gameState.value = 'finished';
-                                }
-                            }
-                            break;
-
-                        case 'rejoinFailed':
-                            console.log('Rejoin failed:', data.data);
-                            if (data.data.code) {
-                                error.value = i18n.global.t(data.data.code, data.data.params || {});
-                            } else {
-                                error.value = data.data.message;
-                            }
-                            clearGameState(); // Clear invalid state
-                            gameState.value = 'menu';
-                            break;
-
-                        case 'error':
-                            console.error('Server error:', data.data);
-                            if (data.data.code) {
-                                error.value = i18n.global.t(data.data.code, data.data.params || {});
-                            } else {
-                                error.value = data.data.message;
-                            }
-                            break;
-
-                        case 'playerDisconnected':
-                            room.value = data.data.room;
-                            message.value = data.data.message;
-                            break;
-                    }
-                }
-
-                function createGame() {
-                    if (!playerNameCreate.value.trim()) {
-                        error.value = i18n.global.t('errorEmptyName');
-                        return;
-                    }
-
+                function createGameQueued() {
+                    if (!playerNameCreate.value.trim()) { error.value = i18n.global.t('errorEmptyName'); return; }
                     currentPlayerName.value = playerNameCreate.value.trim();
-                    error.value = '';
-                    connectWebSocket();
-
-                    socket.value.onopen = () => {
-                        socket.value.send(JSON.stringify({
-                            type: 'create',
-                            data: { playerName: currentPlayerName.value }
-                        }));
-                    };
+                    pendingAction.value = { type: 'create', data: { playerName: currentPlayerName.value } };
+                    busyCreate.value = true; connectWebSocket(); setTimeout(() => busyCreate.value = false, 500);
                 }
 
-                function joinGame() {
-                    if (!playerNameJoin.value.trim()) {
-                        error.value = i18n.global.t('errorEmptyName');
-                        return;
-                    }
-
-                    if (gameCode.value < 1111 || gameCode.value > 9999) {
-                        error.value = i18n.global.t('errorInvalidCode');
-                        return;
-                    }
-
+                function joinGameQueued() {
+                    if (!playerNameJoin.value.trim()) { error.value = i18n.global.t('errorEmptyName'); return; }
+                    if (Number(gameCode.value) < 1111 || Number(gameCode.value) > 9999) { error.value = i18n.global.t('errorInvalidCode'); return; }
                     currentPlayerName.value = playerNameJoin.value.trim();
-                    error.value = '';
-                    connectWebSocket();
-
-                    socket.value.onopen = () => {
-                        socket.value.send(JSON.stringify({
-                            type: 'join',
-                            data: {
-                                playerName: currentPlayerName.value,
-                                gameCode: String(gameCode.value)
-                            }
-                        }));
-                    };
+                    pendingAction.value = { type: 'join', data: { playerName: currentPlayerName.value, gameCode: String(gameCode.value) } };
+                    busyJoin.value = true; connectWebSocket(); setTimeout(() => busyJoin.value = false, 500);
                 }
 
+                // Submit question/answer
                 function submitQuestion() {
-                    console.log('Submitting question...');
-                    console.log('Current player:', currentPlayer.value);
-                    console.log('Room current turn:', room.value?.currentPlayerTurn);
-                    console.log('isMyTurn:', isMyTurn.value);
-
-                    if (!questionForm.value.text.trim()) {
-                        error.value = i18n.global.t('errorEmptyQuestion');
-                        return;
-                    }
-
-                    const filledAnswers = questionForm.value.answers.filter(a => a.trim());
-                    if (filledAnswers.length < 2) {
-                        error.value = i18n.global.t('errorMinAnswers');
-                        return;
-                    }
-
+                    if (!questionForm.value.text.trim()) { error.value = i18n.global.t('errorEmptyQuestion'); return; }
+                    const filled = questionForm.value.answers.filter(a => a.trim()); if (filled.length < 2) { error.value = i18n.global.t('errorMinAnswers'); return; }
                     error.value = '';
-
-                    socket.value.send(JSON.stringify({
-                        type: 'submitQuestion',
-                        data: {
-                            text: questionForm.value.text.trim(),
-                            answers: questionForm.value.answers.map(a => a.trim()).filter(a => a),
-                            correctAnswer: questionForm.value.correctAnswer
-                        }
-                    }));
-
-                    questionForm.value = {
-                        text: '',
-                        answers: ['', '', '', '', ''],
-                        correctAnswer: 0
-                    };
+                    socket.value.send(JSON.stringify({ type: 'submitQuestion', data: { text: questionForm.value.text.trim(), answers: questionForm.value.answers.map(a => a.trim()).filter(Boolean), correctAnswer: questionForm.value.correctAnswer } }));
+                    questionForm.value = { text: '', answers: ['', '', '', '', ''], correctAnswer: 0 };
                 }
 
                 function submitAnswer() {
-                    if (selectedAnswer.value === -1) {
-                        error.value = 'Select an answer';
-                        return;
-                    }
-
+                    if (selectedAnswer.value === -1) { error.value = i18n.global.t('selectAnswer'); return; }
                     error.value = '';
-
-                    socket.value.send(JSON.stringify({
-                        type: 'submitAnswer',
-                        data: {
-                            questionId: room.value.currentQuestion.id,
-                            selectedAnswer: selectedAnswer.value
-                        }
-                    }));
-
+                    socket.value.send(JSON.stringify({ type: 'submitAnswer', data: { questionId: room.value.currentQuestion.id, selectedAnswer: selectedAnswer.value } }));
                     selectedAnswer.value = -1;
                 }
 
+                // Reset game and return to menu
                 function resetGame() {
-                    gameState.value = 'menu';
-                    playerNameCreate.value = '';
-                    playerNameJoin.value = '';
+                    // Close socket if open
+                    try {
+                        if (socket.value) { socket.value.close(); socket.value = null; }
+                    } catch (e) { /* ignore */ }
+                    // Clear runtime state
+                    room.value = null;
+                    currentPlayer.value = null;
                     currentPlayerName.value = '';
                     gameCode.value = '';
-                    room.value = null;
-                    currentPlayer.value = null;
-                    message.value = '';
-                    error.value = '';
                     selectedAnswer.value = -1;
-
-                    // Clear saved game state
-                    clearGameState();
-
-                    // Don't close WebSocket connection - keep it open for new games
-                    // The connection should remain active for the same session
-                }
-
-                function resetGameAfterFinish() {
-                    // Special reset for game end - keep connection open
+                    questionForm.value = { text: '', answers: ['', '', '', '', ''], correctAnswer: 0 };
+                    connectionState.value = 'disconnected';
+                    error.value = '';
                     gameState.value = 'menu';
-                    playerNameCreate.value = '';
-                    playerNameJoin.value = '';
-                    gameCode.value = '';
-                    room.value = null;
-                    currentPlayer.value = null;
-                    message.value = '';
-                    error.value = '';
-                    selectedAnswer.value = -1;
-
-                    // Clear saved game state but keep connection
                     clearGameState();
-
-                    // Reset connection state to avoid disconnection alerts
-                    connectionState.value = 'connected';
                 }
 
+                // Reset after finish - keep current player's name to allow quick new game
+                function resetGameAfterFinish() {
+                    const savedName = currentPlayerName.value || (currentPlayer.value && currentPlayer.value.name) || '';
+                    resetGame();
+                    playerNameCreate.value = savedName;
+                    // move to menu so user can quickly create new game
+                    gameState.value = 'menu';
+                }
+
+                // Copy / share helpers
+                const canShare = !!navigator.share;
+                async function copyCode() {
+                    try { await navigator.clipboard.writeText(room.value?.code || gameCode.value || ''); showToast(i18n.global.t('copyCode'), 'success'); }
+                    catch (e) { showToast(i18n.global.t('errorConnection'), 'error'); }
+                }
+                async function shareCode() {
+                    try {
+                        const url = new URL(window.location.href); url.searchParams.set('q', room.value?.code || gameCode.value || '');
+                        if (navigator.share) { await navigator.share({ title: document.title, text: i18n.global.t('shareCode'), url: url.toString() }); showToast(i18n.global.t('share'), 'success'); }
+                        else { await navigator.clipboard.writeText(url.toString()); showToast(i18n.global.t('copyCode'), 'success'); }
+                    } catch (e) { showToast(i18n.global.t('errorConnection'), 'error'); }
+                }
+
+                // Keyboard / focus helpers
+                function onJoinNameEnter() {
+                    if (/^\d{4}$/.test(String(gameCode.value).trim())) joinGameQueued(); else { const el = document.querySelector('[ref="joinCode"]') || document.querySelector('.oponent-name'); if (el) (el).focus(); }
+                }
+
+                // Connectivity handlers
                 onMounted(() => {
-                    console.log('Component mounted, checking for saved game state...');
+                    const q = new URLSearchParams(window.location.search).get('q'); if (q && /^\d{4}$/.test(q)) { gameCode.value = q; setTimeout(()=>{ const el = document.querySelector('.oponent-name'); if (el) el.focus(); },100); }
+                    const saved = loadGameState(); if (saved && saved.room && saved.currentPlayer) { room.value = saved.room; currentPlayer.value = saved.currentPlayer; currentPlayerName.value = saved.currentPlayerName; gameState.value = 'reconnecting'; connectionState.value = 'connecting'; error.value = i18n.global.t('restoringConnection'); connectWebSocket(); }
 
-                    // Check URL query parameter 'q' for game code
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const queryGameCode = urlParams.get('q');
-                    if (queryGameCode && queryGameCode.match(/^\d{4}$/)) {
-                        console.log('Game code found in URL query parameter q:', queryGameCode);
-                        gameCode.value = queryGameCode;
-                        // Focus on the name input field for joining
-                        setTimeout(() => {
-                            const nameInput = document.querySelector('.oponent-name');
-                            if (nameInput) nameInput.focus();
-                        }, 100);
-                    }
-
-                    // Auto-connect on page load if we have saved game state
-                    const savedGameState = localStorage.getItem('quizGameState');
-                    console.log('Saved game state found:', !!savedGameState);
-
-                    if (savedGameState) {
-                        try {
-                            const state = JSON.parse(savedGameState);
-
-                            if (state.room && state.currentPlayer) {
-                                room.value = state.room;
-                                currentPlayer.value = state.currentPlayer;
-                                currentPlayerName.value = state.currentPlayerName;
-                                gameState.value = 'reconnecting';
-                                connectionState.value = 'connecting';
-                                error.value = 'Restoring connection...';
-
-                                // Attempt to reconnect
-                                setTimeout(() => {
-                                    console.log('Connecting WebSocket...');
-                                    connectWebSocket();
-                                }, 100);
-                            }
-                        } catch (e) {
-                            console.error('Failed to parse saved game state:', e);
-                            clearGameState();
-                        }
-                    }
-
-                    // Handle page visibility changes for mobile
-                    function handleVisibilityChange() {
-                        if (document.hidden) {
-                            console.log('Page hidden - maintaining connection');
-                        } else {
-                            console.log('Page visible - checking connection');
-                            if (socket.value && socket.value.readyState !== WebSocket.OPEN && room.value) {
-                                connectWebSocket();
-                            }
-                        }
-                    }
-
-                    function handleOnline() {
-                        console.log('Network online');
-                        if (room.value && connectionState.value !== 'connected') {
-                            connectWebSocket();
-                        }
-                    }
-
-                    function handleOffline() {
-                        console.log('Network offline');
-                        error.value = 'No internet connection';
-                        connectionState.value = 'disconnected';
-                    }
+                    function handleVisibilityChange(){ if (!document.hidden && socket.value && socket.value.readyState !== WebSocket.OPEN && room.value) connectWebSocket(); }
+                    function handleOnline(){ if (room.value && connectionState.value !== 'connected') connectWebSocket(); }
+                    function handleOffline(){ error.value = i18n.global.t('noInternet'); connectionState.value = 'disconnected'; }
 
                     document.addEventListener('visibilitychange', handleVisibilityChange);
                     window.addEventListener('online', handleOnline);
                     window.addEventListener('offline', handleOffline);
-
-                    // Store references for cleanup
-                    window.__quizGameHandlers = {
-                        visibility: handleVisibilityChange,
-                        online: handleOnline,
-                        offline: handleOffline
-                    };
+                    window.__quizGameHandlers = { visibility: handleVisibilityChange, online: handleOnline, offline: handleOffline };
                 });
 
                 onUnmounted(() => {
-                    // Clean up event listeners using stored references
-                    if (window.__quizGameHandlers) {
-                        document.removeEventListener('visibilitychange', window.__quizGameHandlers.visibility);
-                        window.removeEventListener('online', window.__quizGameHandlers.online);
-                        window.removeEventListener('offline', window.__quizGameHandlers.offline);
-                        delete window.__quizGameHandlers;
-                    }
-
-                    // Clean up connection
-                    if (socket.value) {
-                        socket.value.close();
-                        socket.value = null;
-                    }
+                    if (window.__quizGameHandlers) { document.removeEventListener('visibilitychange', window.__quizGameHandlers.visibility); window.removeEventListener('online', window.__quizGameHandlers.online); window.removeEventListener('offline', window.__quizGameHandlers.offline); delete window.__quizGameHandlers; }
+                    if (socket.value) { socket.value.close(); socket.value = null; }
                 });
 
+                // Watchers
+                watch(room, () => saveGameState(), { deep: true });
+
+                // Expose to template
                 return {
-                    gameState,
-                    playerNameCreate,
-                    playerNameJoin,
-                    currentPlayerName,
-                    gameCode,
-                    room,
-                    currentPlayer,
-                    message,
-                    error,
-                    questionForm,
-                    selectedAnswer,
-                    isMyTurn,
-                    otherPlayer,
-                    canAskQuestion,
-                    canAnswerQuestion,
-                    isConnected,
-                    isReconnecting,
-                    currentLocale,
-                    isDarkMode,
-                    changeLanguage,
-                    toggleDarkMode,
-                    createGame,
-                    canCreateGame,
-                    joinGame,
-                    canJoinGame,
-                    submitQuestion,
-                    canSubmitQuestion,
-                    submitAnswer,
-                    canSubmitAnswer,
-                    resetGame
+                    gameState, playerNameCreate, playerNameJoin, currentPlayerName, gameCode, room, currentPlayer, message, error,
+                    questionForm, selectedAnswer, isMyTurn, otherPlayer, canAskQuestion, canAnswerQuestion,
+                    isConnected, isReconnecting, currentLocale, isDarkMode, changeLanguage, toggleDarkMode,
+                    createGame: createGameQueued, canCreateGame, joinGame: joinGameQueued, canJoinGame,
+                    submitQuestion, canSubmitQuestion, submitAnswer, canSubmitAnswer, resetGame, resetGameAfterFinish,
+                    toasts, dismissToast, copyCode, shareCode, canShare, busyCreate, busyJoin, onJoinNameEnter
                 };
             }
         });
 
-        // Używanie i18n plugin
+        // Use i18n plugin
         app.use(i18n);
         app.mount('#app');
     </script>
     <script>
-        // Kolory dla motywów
+        // Theme colors
         const lightColor = '#f5e9c8';
         const darkColor = '#222222';
 
@@ -3347,10 +3178,10 @@
             setThemeColorMeta(isDark ? darkColor : lightColor);
         }
 
-        // Ustaw na starcie
+        // Initialize on load
         updateThemeColor();
 
-        // Obserwuj zmiany klasy na <html>
+        // Observe changes on <html> class
         const observer = new MutationObserver(updateThemeColor);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     </script>

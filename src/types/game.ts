@@ -51,22 +51,36 @@ export interface AnswerData {
 
 export interface GameUpdateData {
   room: GameRoom;
+  // Optional human-readable message OR an i18n code with params
   message?: string;
+  code?: string;
+  params?: Record<string, unknown>;
 }
 
 export interface ErrorData {
-  message: string;
+  message?: string;
+  code?: string;
+  params?: Record<string, unknown>;
 }
 
-export type WebSocketMessageData = 
-  | CreateGameData 
-  | JoinGameData 
-  | QuestionData 
-  | AnswerData 
-  | GameUpdateData 
+export type WebSocketMessageData =
+  | CreateGameData
+  | JoinGameData
+  | QuestionData
+  | AnswerData
+  | GameUpdateData
   | ErrorData;
 
 export interface WebSocketMessage {
-  type: 'create' | 'join' | 'question' | 'answer' | 'gameUpdate' | 'error' | 'playerDisconnected' | 'ping' | 'rejoin';
+  type:
+    | 'create'
+    | 'join'
+    | 'submitQuestion'
+    | 'submitAnswer'
+    | 'gameUpdate'
+    | 'error'
+    | 'playerDisconnected'
+    | 'ping'
+    | 'rejoin';
   data: WebSocketMessageData;
 }

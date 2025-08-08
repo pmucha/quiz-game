@@ -2,9 +2,9 @@ import type { GameRoom, Player, Question } from '../types/game.ts';
 
 export class GameManager {
   private rooms = new Map<string, GameRoom>();
-  private kv: Deno.Kv;
+  private kv: any;
 
-  constructor(kv: Deno.Kv) {
+  constructor(kv: any) {
     this.kv = kv;
   }
 

@@ -2,6 +2,9 @@ import { serveDir } from "@std/http/file-server";
 import { GameManager } from "./src/server/gameManager.ts";
 import type { WebSocketMessage, CreateGameData, JoinGameData, QuestionData, AnswerData, GameRoom } from "./src/types/game.ts";
 
+
+declare const Deno: any;
+
 // Initialize Deno KV
 const kv = await Deno.openKv();
 const gameManager = new GameManager(kv);
@@ -11,16 +14,16 @@ const connections = new Map<WebSocket, { roomId?: string; playerId?: string }>()
 
 async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
-  
+
   // WebSocket upgrade
   if (req.headers.get("upgrade") === "websocket") {
     const { socket, response } = Deno.upgradeWebSocket(req);
-    
+
     socket.onopen = () => {
       console.log("WebSocket connection opened");
       connections.set(socket, {});
     };
-    
+
     socket.onmessage = async (event: MessageEvent) => {
       try {
         const message: WebSocketMessage = JSON.parse(event.data);
@@ -33,15 +36,15 @@ async function handler(req: Request): Promise<Response> {
         }));
       }
     };
-    
+
     socket.onclose = () => {
       console.log("WebSocket connection closed");
       handleDisconnection(socket);
     };
-    
+
     return response;
   }
-  
+
   // Serve static files
   if (url.pathname === "/" || url.pathname === "/index.html") {
     return await serveDir(req, {
@@ -109,7 +112,7 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
         }
         break;
       }
-      
+
       case 'submitQuestion': {
         if (!connection.roomId || !connection.playerId) return;
 
@@ -136,7 +139,7 @@ async function handleMessage(socket: WebSocket, message: WebSocketMessage) {
         }
         break;
       }
-      
+
       case 'submitAnswer': {
         if (!connection.roomId || !connection.playerId) return;
 
@@ -242,7 +245,7 @@ function handleDisconnection(socket: WebSocket) {
         if (room) {
           broadcastToRoom(connection.roomId!, {
             type: 'playerDisconnected',
-            data: { 
+            data: {
               room,
               message: 'Gracz rozłączył się'
             }
@@ -256,8 +259,11 @@ function handleDisconnection(socket: WebSocket) {
 interface BroadcastMessage {
   type: string;
   data: {
-    room: GameRoom;
-    message: string;
+    room?: GameRoom;
+    message?: string;
+    code?: string;
+    params?: Record<string, unknown>;
+    player?: any;
   };
 }
 
