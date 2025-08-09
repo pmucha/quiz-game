@@ -60,8 +60,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
-        html, body {
+        html,
+        body {
             background-color: #f5e9c8;
+
             @media (prefers-color-scheme: dark) {
                 background-color: #222222;
             }
@@ -69,6 +71,7 @@
 
         .book-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
             .dark & {
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             }
@@ -110,10 +113,14 @@
 
         /* Transition for simple fades */
         .fade {
-            &-enter-active, &-leave-active {
+
+            &-enter-active,
+            &-leave-active {
                 transition: opacity 220ms ease, transform 220ms ease;
             }
-            &-enter-from, &-leave-to {
+
+            &-enter-from,
+            &-leave-to {
                 opacity: 0;
                 transform: translateY(6px);
             }
@@ -131,6 +138,7 @@
             gap: 0.5rem;
             pointer-events: none;
         }
+
         .toast {
             pointer-events: auto;
             min-width: 200px;
@@ -138,20 +146,38 @@
             padding: 0.5rem 1rem;
             border-radius: 8px;
             color: #0b1220;
-            box-shadow: 0 6px 18px rgba(10,10,10,0.12);
+            box-shadow: 0 6px 18px rgba(10, 10, 10, 0.12);
             font-family: Inter, system-ui, sans-serif;
             display: flex;
             align-items: center;
             justify-content: space-between;
 
-            &.success { background: #d1fae5; color: #064e3b; }
-            &.error { background: #fee2e2; color: #7f1d1d; }
-            .close { margin-left: 0.75rem; cursor: pointer; opacity: 0.8 }
+            &.success {
+                background: #d1fae5;
+                color: #064e3b;
+            }
+
+            &.error {
+                background: #fee2e2;
+                color: #7f1d1d;
+            }
+
+            .close {
+                margin-left: 0.75rem;
+                cursor: pointer;
+                opacity: 0.8
+            }
         }
 
         /* Accessibility helper */
-        .sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
-
+        .sr-only {
+            position: absolute !important;
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+            clip: rect(1px, 1px, 1px, 1px);
+            white-space: nowrap;
+        }
     </style>
 
     <link rel="manifest" href="/manifest.json">
@@ -180,13 +206,15 @@
         <div aria-live="polite" class="sr-only" id="statusRegion"></div>
         <div class="container mx-auto px-4 py-8 max-w-4xl" :key="currentLocale">
             <!-- Language Selector and Dark Mode Toggle -->
-            <div class="absolute top-4 right-4 flex items-center space-x-3" role="region" aria-label="Language and theme controls">
+            <div class="absolute top-4 right-4 flex items-center space-x-3" role="region"
+                aria-label="Language and theme controls">
                 <!-- Language Selector -->
                 <select ref="languageSelect" :value="currentLocale" @change="changeLanguage($event.target.value)"
                     :aria-label="$t('language')"
                     class="text-xs bg-parchment-100 dark:bg-dark-parchment-100 border border-parchment-300 dark:border-dark-parchment-300 rounded px-2 py-1 text-ink-700 dark:text-dark-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500">
                     <option value="en">🇺🇸 English</option>
                     <option value="pl">🇵🇱 Polski</option>
+                    <option value="pl-old">🇵🇱 Staropolski</option>
                     <option value="cs">🇨🇿 Čeština</option>
                     <option value="hu">🇭🇺 Magyar</option>
                     <option value="bg">🇧🇬 Български</option>
@@ -213,8 +241,7 @@
                 </select>
 
                 <!-- Dark Mode Toggle -->
-                <button @click="toggleDarkMode"
-                    :aria-label="$t('toggleDarkMode')"
+                <button @click="toggleDarkMode" :aria-label="$t('toggleDarkMode')"
                     class="text-xs bg-parchment-100 dark:bg-dark-parchment-100 border border-parchment-300 dark:border-dark-parchment-300 rounded px-2 py-1 text-ink-700 dark:text-dark-ink-700 font-sans focus:outline-none focus:ring-1 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500 hover:bg-parchment-200 dark:hover:bg-dark-parchment-200 transition-colors">
                     {{ isDarkMode ? '☀️' : '🌙' }}
                 </button>
@@ -227,19 +254,25 @@
                 <!-- Connection status indicator: shape + color for accessibility (not color-only) -->
                 <div class="inline-flex items-center justify-center w-5 h-5"
                     :title="isConnected ? $t('connected') : (isReconnecting ? $t('restoringConnection') : $t('noConnection'))"
-                    aria-live="polite" role="status" :aria-label="isConnected ? $t('connected') : (isReconnecting ? $t('restoringConnection') : $t('noConnection'))">
+                    aria-live="polite" role="status"
+                    :aria-label="isConnected ? $t('connected') : (isReconnecting ? $t('restoringConnection') : $t('noConnection'))">
                     <!-- Connected: check mark inside circle -->
-                    <svg v-if="isConnected" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-green-600" aria-hidden="true">
+                    <svg v-if="isConnected" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                        class="w-5 h-5 text-green-600" aria-hidden="true">
                         <circle cx="12" cy="12" r="10" fill="currentColor" />
-                        <polyline points="7.5 12.5 10.5 15.5 16.5 9.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="7.5 12.5 10.5 15.5 16.5 9.5" fill="none" stroke="#fff" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <!-- Reconnecting: small clock/loader symbol (distinct shape) -->
-                    <svg v-else-if="isReconnecting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-yellow-500" aria-hidden="true">
+                    <svg v-else-if="isReconnecting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                        class="w-5 h-5 text-yellow-500" aria-hidden="true">
                         <circle cx="12" cy="12" r="10" fill="currentColor" />
-                        <path d="M12 7v6l4 2" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M12 7v6l4 2" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
                     </svg>
                     <!-- Disconnected: cross mark inside circle -->
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-red-600" aria-hidden="true">
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-red-600"
+                        aria-hidden="true">
                         <circle cx="12" cy="12" r="10" fill="currentColor" />
                         <line x1="8" y1="8" x2="16" y2="16" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
                         <line x1="16" y1="8" x2="8" y2="16" stroke="#fff" stroke-width="1.8" stroke-linecap="round" />
@@ -248,20 +281,23 @@
                 <h1 class="text-4xl font-bold text-ink-800 dark:text-dark-ink-800 mb-2">📚 Quiz Multiplayer</h1>
             </div>
             <p v-if="gameState === 'menu'"
-                class="text-ink-600 dark:text-dark-ink-600 text-lg transition-opacity duration-300" role="heading" aria-level="2">{{ $t('subtitle') }}
+                class="text-ink-600 dark:text-dark-ink-600 text-lg transition-opacity duration-300" role="heading"
+                aria-level="2">{{ $t('subtitle') }}
             </p>
         </header>
 
         <!-- Toast container -->
         <div class="toast-container" aria-live="polite" aria-atomic="true">
             <transition-group name="fade" tag="div">
-                <div v-for="toast in toasts" :key="toast.id" :class="['toast', toast.type]" role="alert" aria-live="assertive">
+                <div v-for="toast in toasts" :key="toast.id" :class="['toast', toast.type]" role="alert"
+                    aria-live="assertive">
                     <div class="flex items-center space-x-3">
                         <div v-if="toast.type === 'success'">✅</div>
                         <div v-else>⚠️</div>
                         <div class="text-sm">{{ toast.text }}</div>
                     </div>
-                    <div class="close" @click="dismissToast(toast.id)" role="button" :aria-label="$t('closeToast')">✖</div>
+                    <div class="close" @click="dismissToast(toast.id)" role="button" :aria-label="$t('closeToast')">✖
+                    </div>
                 </div>
             </transition-group>
         </div>
@@ -272,23 +308,28 @@
                 class="bg-parchment-100 dark:bg-dark-parchment-100 p-8 rounded-lg book-shadow border border-parchment-300 dark:border-dark-parchment-300">
                 <!-- Create New Game Section -->
                 <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center" role="heading" aria-level="2">{{
+                    <h2 class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center" role="heading"
+                        aria-level="2">{{
                         $t('createNewGame') }}</h2>
 
                     <div class="space-y-4 mb-6">
                         <div>
-                            <label for="createName" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
+                            <label for="createName" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{
+                                $t('yourName')
                                 }}:</label>
                             <input id="createName" v-model="playerNameCreate" ref="createName" type="text"
                                 class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
-                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="createGame" aria-required="true" />
+                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="createGame"
+                                aria-required="true" />
                         </div>
                     </div>
 
                     <button @click="createGame"
                         class="w-full bg-parchment-500 dark:bg-dark-parchment-500 hover:bg-parchment-600 dark:hover:bg-dark-parchment-600 text-white text-shadow font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                         :disabled="!canCreateGame || busyCreate" aria-busy="busyCreate">
-                        <span v-if="busyCreate" class="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" aria-label="Loading"></span>
+                        <span v-if="busyCreate"
+                            class="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2"
+                            aria-label="Loading"></span>
                         🎲 {{ $t('createNewGameButton') }}
                     </button>
                 </div>
@@ -307,53 +348,51 @@
 
                 <!-- Join Game Section -->
                 <div>
-                    <h2 id="joinGameHeading" class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center" role="heading" aria-level="2">{{
+                    <h2 id="joinGameHeading"
+                        class="text-2xl font-bold text-ink-800 dark:text-dark-ink-800 mb-6 text-center" role="heading"
+                        aria-level="2">{{
                         $t('joinGame') }}</h2>
 
                     <div class="space-y-4 mb-6" role="group" :aria-labelledby="'joinGameHeading'">
                         <div>
-                            <label for="joinName" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('yourName')
+                            <label for="joinName" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{
+                                $t('yourName')
                                 }}:</label>
                             <input id="joinName" v-model="playerNameJoin" ref="joinName" type="text"
                                 class="oponent-name w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
-                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="onJoinNameEnter" aria-required="true" />
+                                :placeholder="$t('enterYourName')" maxlength="20" @keyup.enter="onJoinNameEnter"
+                                aria-required="true" />
                         </div>
 
                         <div>
-                            <label for="joinCode" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('gameCode')
+                            <label for="joinCode" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{
+                                $t('gameCode')
                                 }}:</label>
                             <!-- Hidden real input to keep form semantics and label association -->
-                            <input id="joinCode" v-model="gameCode" type="text" maxlength="4" inputmode="numeric" pattern="\\d*"
-                                class="sr-only" @focus="focusDigit(0)" />
+                            <input id="joinCode" v-model="gameCode" type="text" maxlength="4" inputmode="numeric"
+                                pattern="\\d*" class="sr-only" @focus="focusDigit(0)" />
 
                             <!-- 4 visual one-character inputs -->
                             <div class="grid grid-cols-4 gap-2" role="group" :aria-label="$t('gameCode')">
-                                <input
-                                    v-for="i in 4"
-                                    :key="i"
-                                    :ref="el => codeDigitRefs[i-1] = el"
-                                    :data-join-code-digit="i-1"
-                                    :value="codeDigits[i-1]"
-                                    @input="onDigitInput(i-1, $event)"
-                                    @keydown="onDigitKeydown(i-1, $event)"
-                                    @paste="onDigitPaste(i-1, $event)"
-                                    @beforeinput="onDigitBeforeInput(i-1, $event)"
-                                    @keyup.enter="joinGame"
-                                    type="text"
-                                    inputmode="numeric"
-                                    pattern="\\d*"
-                                    maxlength="1"
+                                <input v-for="i in 4" :key="i" :ref="el => codeDigitRefs[i-1] = el"
+                                    :data-join-code-digit="i-1" :value="codeDigits[i-1]"
+                                    @input="onDigitInput(i-1, $event)" @keydown="onDigitKeydown(i-1, $event)"
+                                    @paste="onDigitPaste(i-1, $event)" @beforeinput="onDigitBeforeInput(i-1, $event)"
+                                    @keyup.enter="joinGame" type="text" inputmode="numeric" pattern="\\d*" maxlength="1"
                                     autocomplete="one-time-code"
                                     class="p-3 text-center border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500" />
                             </div>
-                            <p class="mt-2 text-sm text-ink-600 dark:text-dark-ink-600 font-sans">{{ $t('enterGameCode') }}</p>
+                            <p class="mt-2 text-sm text-ink-600 dark:text-dark-ink-600 font-sans">{{ $t('enterGameCode')
+                                }}</p>
                         </div>
                     </div>
 
                     <button @click="joinGame"
                         class="w-full bg-gray-700 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-900 text-white font-sans font-bold py-3 px-6 rounded-lg book-shadow transition-colors"
                         :disabled="!canJoinGame || busyJoin" aria-busy="busyJoin">
-                        <span v-if="busyJoin" class="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2" aria-label="Loading"></span>
+                        <span v-if="busyJoin"
+                            class="inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mr-2"
+                            aria-label="Loading"></span>
                         🚪 {{ $t('joinGameButton') }}
                     </button>
                 </div>
@@ -555,7 +594,7 @@
             // If no saved preferences, use browser language
             const lang = navigator.language || navigator.userLanguage;
             const langCode = lang.split('-')[0];
-            const supportedLanguages = ['pl', 'en', 'es', 'de', 'szl', 'zh', 'ja', 'pt', 'ga', 'hi', 'fr', 'it', 'tr', 'ar', 'bn', 'id', 'pa', 'sw', 'vi', 'ko', 'csb', 'pl-goral', 'cs', 'hu', 'bg', 'hr', 'el', 'tlh', 'vuh', 'en-pirate', 'en-pidgin', 'en-shakespeare', 'en-leet', 'en-yoda', 'emoji', 'la', 'qya', 'pl-korpo', 'lol', 'robot'];
+            const supportedLanguages = ['pl', 'pl-old', 'en', 'es', 'de', 'szl', 'zh', 'ja', 'pt', 'ga', 'hi', 'fr', 'it', 'tr', 'ar', 'bn', 'id', 'pa', 'sw', 'vi', 'ko', 'csb', 'pl-goral', 'cs', 'hu', 'bg', 'hr', 'el', 'tlh', 'vuh', 'en-pirate', 'en-pidgin', 'en-shakespeare', 'en-leet', 'en-yoda', 'emoji', 'la', 'qya', 'pl-korpo', 'lol', 'robot'];
             return supportedLanguages.includes(langCode) ? langCode : 'en';
         }
 
@@ -2769,6 +2808,77 @@
                 footerRepo: "Kod tego projektu jest open source na GitHubie",
                 footerPrivacy: "Projekt nie zbiera danych wrażliwych. Twój naming jest tymczasowo przechowywany na serwerowni podczas gry i share’owany z drugim userem."
             },
+            'pl-old': {
+                subtitle: 'Zabawa dwom osobom przeznaczona',
+                createNewGame: 'Uczyń świeżą rozgrywkę',
+                yourName: 'Imię Twoje',
+                enterYourName: 'Wpisz imię swoje…',
+                createNewGameButton: 'Zawiń nowę rozgrywkę',
+                or: 'tudzież',
+                joinGame: 'Przystąp do zabawy',
+                gameCode: 'Szyfr rozgrywki',
+                enterGameCode: 'Wpisz szyfr z czterech znamion…', // "czterocyfrowy" -> archaiczne "z czterech znamion"
+                joinGameButton: 'Przystąpże',
+                waitingForPlayer: 'Czekanie na wtórego współzawodnika…',
+                gameCodeLabel: 'Znak rozgrywczy',
+                shareCode: 'Rozgłoś ów szyfr wtóremu współzawodnikowi',
+                backToMenu: 'Wróć ku menu',
+                gameInProgress: 'Rozgrywka w toku',
+                round: 'Runda',
+                completedRounds: 'Rundy dokonane',
+                yourTurnAsk: 'Twoja kolej — zadawaj pytanie!',
+                questionText: 'Pytanie',
+                enterQuestion: 'Wpisz pytanie swe…',
+                answers: 'Odpowiedzi',
+                answer: 'Odpowiedź',
+                selectCorrectAnswer: 'Wskaż odpowiedź prawdziwą',
+                askQuestion: 'Zadaj zapytanie',
+                playerAsks: '{name} pyta',
+                waiting: 'Oczekiwanie',
+                playerThinking: '{name} w rozmyślaniach',
+                playerPreparing: '{name} przyrządza pytanie',
+                gameFinished: 'Rozgrywka zakończona!',
+                winner: 'Zwycięzca',
+                tie: 'Remis',
+                newGame: 'Nowa rozgrywka',
+                errorMinAnswers: 'Podaj choć dwie odpowiedzi', // prostsze, ale archaiczne brzmienie
+                errorEmptyName: 'Wpisz imię swoje, proszę',
+                errorEmptyCode: 'Wpisz szyfr rozgrywki',
+                errorEmptyQuestion: 'Wpisz zapytanie swe',
+                errorInvalidCode: 'Wpisz godziwy szyfr z czterech znamion',
+                errorConnection: 'Zburzenie łączności z maszynowym gospodarzem', // "serwer" -> "maszynowy gospodarz"
+                gameCreated: 'Rozgrywka uczyniona! Szyfr: {code}',
+                playerJoined: '{name} do zabawy przystąpił! Rozgrywka się zaczyna!',
+                answerCorrect: '{name} odpowiedział słusznie i punkt zdobywa!',
+                answerIncorrect: '{name} odpowiedział mylnie. Prawdziwa odpowiedź: {correct}',
+                questionSubmitted: 'Pytanie złożono',
+                answerSubmitted: 'Odpowiedź posłano',
+                tieBreaker: 'Remis! Dogrywka, runda {round}!',
+                nextRound: 'Koniec rundy {prev}. Runda {next} się poczyna!',
+                gameFinished3Points: '{name} trzy punkty ma i rozgrywkę wygrywa!',
+                errorJoinRoom: 'Pokoju nie odnaleziono albo pełny jest', // archaiczne i nieco niejasne
+                errorSubmitAnswer: 'Na tę chwilę odpowiedzieć nie wolno',
+                errorSubmitQuestion: 'Na tę chwilę pytać nie przystoi',
+                reconnectSuccess: 'Więź przywrócona pomyślnie!',
+                playerRejoined: '{name} powrócił do zabawy!',
+                errorReconnect: 'Niepodobna przywrócić rozgrywki. Gracza nie znaleziono.',
+                footerRepo: 'Źródła tej roboty dostępne u GitHuba', // "GitHub" zachowany, lekko archaizowany
+                footerPrivacy: 'Ta robota żadnych danych osobistych nie gromadzi. Imię Twoje przechowuje się chwilowo w czasie zabawy i ujawnia wtóremu współzawodnikowi.',
+                // UI / client-side
+                selectAnswer: 'Wybierz odzew',
+                restoringConnection: 'Przywracanie więzi…',
+                noInternet: 'Brak związków z siecią',
+                copyCode: 'Przepisz szyfr',
+                share: 'Rozgłoś',
+                language: 'Język',
+                toggleDarkMode: 'Przełącz nocny tryb',
+                connected: 'Połączono',
+                noConnection: 'Brak łączności',
+                errorRoomNotFound: 'Pokoju nie odnaleziono',
+                errorPlayerNotFound: 'Towarzysza nie odnaleziono',
+                splashLoading: 'Ładowanie…',
+                splashAriaLabel: 'Ładowanie przystroju aplikacji'
+            },
             lol: {
                 subtitle: "Game fur two kittehs",
                 createNewGame: "Makez New Gamez",
@@ -3014,8 +3124,8 @@
                     // Allow only digits and control/navigation keys
                     const isDigit = /^[0-9]$/.test(key);
                     const allowedControl = [
-                        'Backspace','Delete','Tab','Escape','Enter',
-                        'ArrowLeft','ArrowRight','Home','End'
+                        'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                        'ArrowLeft', 'ArrowRight', 'Home', 'End'
                     ];
                     const isAllowed = isDigit || allowedControl.includes(key);
 
@@ -3243,12 +3353,12 @@
 
                 // Connectivity handlers
                 onMounted(() => {
-                    const q = new URLSearchParams(window.location.search).get('q'); if (q && /^\d{4}$/.test(q)) { gameCode.value = q; setTimeout(()=>{ const el = document.querySelector('.oponent-name'); if (el) el.focus(); },100); }
+                    const q = new URLSearchParams(window.location.search).get('q'); if (q && /^\d{4}$/.test(q)) { gameCode.value = q; setTimeout(() => { const el = document.querySelector('.oponent-name'); if (el) el.focus(); }, 100); }
                     const saved = loadGameState(); if (saved && saved.room && saved.currentPlayer) { room.value = saved.room; currentPlayer.value = saved.currentPlayer; currentPlayerName.value = saved.currentPlayerName; gameState.value = 'reconnecting'; connectionState.value = 'connecting'; error.value = i18n.global.t('restoringConnection'); connectWebSocket(); }
 
-                    function handleVisibilityChange(){ if (!document.hidden && socket.value && socket.value.readyState !== WebSocket.OPEN && room.value) connectWebSocket(); }
-                    function handleOnline(){ if (room.value && connectionState.value !== 'connected') connectWebSocket(); }
-                    function handleOffline(){ error.value = i18n.global.t('noInternet'); connectionState.value = 'disconnected'; }
+                    function handleVisibilityChange() { if (!document.hidden && socket.value && socket.value.readyState !== WebSocket.OPEN && room.value) connectWebSocket(); }
+                    function handleOnline() { if (room.value && connectionState.value !== 'connected') connectWebSocket(); }
+                    function handleOffline() { error.value = i18n.global.t('noInternet'); connectionState.value = 'disconnected'; }
 
                     document.addEventListener('visibilitychange', handleVisibilityChange);
                     window.addEventListener('online', handleOnline);
