@@ -323,9 +323,31 @@
                         <div>
                             <label for="joinCode" class="block text-ink-700 dark:text-dark-ink-700 font-sans mb-2">{{ $t('gameCode')
                                 }}:</label>
-                            <input id="joinCode" v-model="gameCode" ref="joinCode" type="text" maxlength="4" inputmode="numeric" pattern="\\d*"
-                                class="w-full p-3 border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500"
-                                :placeholder="$t('enterGameCode')" @keyup.enter="joinGame" aria-required="true" />
+                            <!-- Hidden real input to keep form semantics and label association -->
+                            <input id="joinCode" v-model="gameCode" type="text" maxlength="4" inputmode="numeric" pattern="\\d*"
+                                class="sr-only" @focus="focusDigit(0)" />
+
+                            <!-- 4 visual one-character inputs -->
+                            <div class="grid grid-cols-4 gap-2" role="group" :aria-label="$t('gameCode')">
+                                <input
+                                    v-for="i in 4"
+                                    :key="i"
+                                    :ref="el => codeDigitRefs[i-1] = el"
+                                    :data-join-code-digit="i-1"
+                                    :value="codeDigits[i-1]"
+                                    @input="onDigitInput(i-1, $event)"
+                                    @keydown="onDigitKeydown(i-1, $event)"
+                                    @paste="onDigitPaste(i-1, $event)"
+                                    @beforeinput="onDigitBeforeInput(i-1, $event)"
+                                    @keyup.enter="joinGame"
+                                    type="text"
+                                    inputmode="numeric"
+                                    pattern="\\d*"
+                                    maxlength="1"
+                                    autocomplete="one-time-code"
+                                    class="p-3 text-center border border-parchment-400 dark:border-dark-parchment-400 rounded-lg bg-parchment-50 dark:bg-dark-parchment-50 text-ink-800 dark:text-dark-ink-800 font-sans focus:outline-none focus:ring-2 focus:ring-parchment-500 dark:focus:ring-dark-parchment-500" />
+                            </div>
+                            <p class="mt-2 text-sm text-ink-600 dark:text-dark-ink-600 font-sans">{{ $t('enterGameCode') }}</p>
                         </div>
                     </div>
 
@@ -2890,6 +2912,9 @@
                 const playerNameJoin = ref('');
                 const currentPlayerName = ref('');
                 const gameCode = ref('');
+                // Visual 4-digit inputs state and refs
+                const codeDigits = ref(['', '', '', '']);
+                const codeDigitRefs = ref([null, null, null, null]);
                 const room = ref(null);
                 const currentPlayer = ref(null);
                 const socket = ref(null);
@@ -2953,6 +2978,104 @@
                     return textOk && minAnswersOk && correctOk;
                 });
                 const canSubmitAnswer = computed(() => selectedAnswer.value !== -1);
+
+                // Sync between gameCode and visual digits
+                watch(gameCode, (val) => {
+                    const v = String(val || '').replace(/\D/g, '').slice(0, 4);
+                    const current = codeDigits.value.join('');
+                    if (v !== current) codeDigits.value = [v[0] || '', v[1] || '', v[2] || '', v[3] || ''];
+                });
+
+                function focusDigit(index) {
+                    const el = codeDigitRefs.value[index];
+                    if (el && typeof el.focus === 'function') el.focus();
+                }
+
+                function setGameCodeFromDigits() {
+                    gameCode.value = codeDigits.value.join('');
+                }
+
+                function onDigitInput(index, event) {
+                    const raw = event.target.value;
+                    const digit = (raw.match(/\d/) || [''])[0];
+                    codeDigits.value[index] = digit;
+                    setGameCodeFromDigits();
+                    if (digit && index < 3) focusDigit(index + 1);
+                }
+
+                function onDigitKeydown(index, event) {
+                    const key = event.key;
+                    // Allow clipboard shortcuts (paste/copy/cut/select all)
+                    if (event.ctrlKey || event.metaKey) {
+                        const kl = String(key).toLowerCase();
+                        if (['v', 'c', 'x', 'a'].includes(kl)) {
+                            return; // do not block Ctrl/Cmd+V/C/X/A
+                        }
+                    }
+                    // Allow only digits and control/navigation keys
+                    const isDigit = /^[0-9]$/.test(key);
+                    const allowedControl = [
+                        'Backspace','Delete','Tab','Escape','Enter',
+                        'ArrowLeft','ArrowRight','Home','End'
+                    ];
+                    const isAllowed = isDigit || allowedControl.includes(key);
+
+                    // Block any non-digit character keys (including letters, punctuation)
+                    if (!isAllowed) {
+                        event.preventDefault();
+                        return;
+                    }
+                    if (key === 'Backspace') {
+                        if (codeDigits.value[index]) {
+                            codeDigits.value[index] = '';
+                            setGameCodeFromDigits();
+                            event.preventDefault();
+                            return;
+                        }
+                        if (index > 0) {
+                            focusDigit(index - 1);
+                            setTimeout(() => {
+                                if (!codeDigits.value[index - 1]) return;
+                                codeDigits.value[index - 1] = '';
+                                setGameCodeFromDigits();
+                            }, 0);
+                            event.preventDefault();
+                        }
+                    } else if (key === 'ArrowLeft' && index > 0) {
+                        focusDigit(index - 1); event.preventDefault();
+                    } else if (key === 'ArrowRight' && index < 3) {
+                        focusDigit(index + 1); event.preventDefault();
+                    }
+                }
+
+                function onDigitBeforeInput(index, event) {
+                    const t = event.inputType || '';
+                    if (t && (t.includes('delete') || t.includes('history'))) return;
+                    const data = event.data ?? '';
+                    if (data && !/^\d$/.test(data)) {
+                        event.preventDefault();
+                    }
+                }
+
+                function onDigitPaste(index, event) {
+                    const text = (event.clipboardData || window.clipboardData)?.getData?.('text') || '';
+                    if (!text) return;
+                    const digits = String(text).replace(/\D/g, '').slice(0, 4);
+                    if (!digits) return;
+                    event.preventDefault();
+                    for (let i = 0; i < 4 && i + index < 4; i++) {
+                        codeDigits.value[index + i] = digits[i] || '';
+                    }
+                    if (digits.length > 4 - index) {
+                        const remaining = digits.slice(4 - index);
+                        for (let i = 0; i < index; i++) {
+                            codeDigits.value[i] = remaining[i] || codeDigits.value[i];
+                        }
+                    }
+                    setGameCodeFromDigits();
+                    const nextIdx = codeDigits.value.findIndex((d, i) => i > index && d === '');
+                    focusDigit(nextIdx === -1 ? 3 : nextIdx);
+                }
 
                 // persistence
                 function saveGameState() {
@@ -3116,7 +3239,7 @@
 
                 // Keyboard / focus helpers
                 function onJoinNameEnter() {
-                    if (/^\d{4}$/.test(String(gameCode.value).trim())) joinGameQueued(); else { const el = document.querySelector('[ref="joinCode"]') || document.querySelector('.oponent-name'); if (el) (el).focus(); }
+                    if (/^\d{4}$/.test(String(gameCode.value).trim())) joinGameQueued(); else { focusDigit(0); }
                 }
 
                 // Connectivity handlers
@@ -3149,7 +3272,8 @@
                     isConnected, isReconnecting, currentLocale, isDarkMode, changeLanguage, toggleDarkMode,
                     createGame: createGameQueued, canCreateGame, joinGame: joinGameQueued, canJoinGame,
                     submitQuestion, canSubmitQuestion, submitAnswer, canSubmitAnswer, resetGame, resetGameAfterFinish,
-                    toasts, dismissToast, copyCode, shareCode, canShare, busyCreate, busyJoin, onJoinNameEnter
+                    toasts, dismissToast, copyCode, shareCode, canShare, busyCreate, busyJoin, onJoinNameEnter,
+                    codeDigits, codeDigitRefs, onDigitInput, onDigitKeydown, onDigitPaste, onDigitBeforeInput, focusDigit
                 };
             }
         });
