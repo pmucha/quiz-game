@@ -7,20 +7,17 @@
     "start": "deno run --allow-net --allow-read --allow-write --allow-env --unstable-kv main.ts"
   },
   "imports": {
-    "@std/http": "jsr:@std/http@^1.0.0",
-    "@std/path": "jsr:@std/path@^1.0.0",
-    "@std/uuid": "jsr:@std/uuid@^1.0.0",
-    "vue": "https://unpkg.com/vue@3.4.0/dist/vue.esm-browser.js"
+    "@std/http": "jsr:@std/http@^1.1.0",
+    "@std/path": "jsr:@std/path@^1.1.4",
+    "@std/uuid": "jsr:@std/uuid@^1.1.1",
+    "vue": "https://unpkg.com/vue@3.5.33/dist/vue.esm-browser.js"
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "strict": true
   },
   "deploy": {
-    "project": "6d7e510c-9c79-46b7-ae46-9bb706b6944a",
-    "exclude": [
-      "**/node_modules"
-    ],
+    "project": "quiz-game",
+    "exclude": ["**/node_modules"],
     "include": [],
     "entrypoint": "main.ts"
   }
