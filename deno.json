@@ -16,6 +16,7 @@
     "strict": true
   },
   "deploy": {
+    "org": "pmucha",
     "project": "quiz-game",
     "exclude": ["**/node_modules"],
     "include": [],
