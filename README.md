@@ -1,6 +1,6 @@
 # Quiz Multiplayer - Game for Two
 
-Multiplayer quiz game for two players built with Deno, TypeScript, WebSockets, and Deno KV.
+Multiplayer quiz game for two players built with Deno, TypeScript, WebSockets, and Deno KV. You can play on [Deno Deploy](https://quiz-game.pmucha.deno.net).
 
 ## ✨ Features
 
@@ -122,7 +122,7 @@ MIT License
 
 # Quiz Multiplayer - Gra dla Dwóch
 
-Multiplayer quiz game dla dwóch graczy zbudowana z Deno, TypeScript, WebSockets i Deno KV.
+Multiplayer quiz game dla dwóch graczy zbudowana z Deno, TypeScript, WebSockets i Deno KV. Możesz zagrać na [Deno Deploy](https://quiz-game.pmucha.deno.net).
 
 ## ✨ Funkcje
 
